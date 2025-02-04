@@ -15,11 +15,11 @@ with open('dj_rest_auth/__version__.py', 'r', encoding="utf8") as f:
     exec(f.read(), about)
 
 setup(
-    name='dj-rest-auth',
+    name='Agrisense Project',
     version=about['__version__'],
-    author='iMerica',
-    author_email='imichael@pm.me',
-    url='https://github.com/iMerica/dj-rest-auth',
+    author='Jeanos',
+    author_email='jeankelouaouamouno71@gmail.com',
+    url='https://github.com/Jeanos2004/Agrisense.git',
     description='Authentication and Registration in Django Rest Framework',
     license='MIT',
     packages=find_packages(),

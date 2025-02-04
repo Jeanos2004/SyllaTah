@@ -1,4 +1,4 @@
-# Dj-Rest-Auth
+# Project Agrisense 
 [![<iMerica>](https://github.com/iMerica/dj-rest-auth/actions/workflows/main.yml/badge.svg)](https://github.com/iMerica/dj-rest-auth/actions/workflows/main.yml/)
 
 
