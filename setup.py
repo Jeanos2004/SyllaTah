@@ -19,8 +19,8 @@ setup(
     version=about['__version__'],
     author='Jeanos',
     author_email='jeankelouaouamouno71@gmail.com',
-    url='https://github.com/Jeanos2004/Agrisense.git',
-    description='Authentication and Registration in Django Rest Framework',
+    url='https://github.com/Jeanos2004/Syllatah.git',
+    description='Projet de Gestion Hebergement-Hotel',
     license='MIT',
     packages=find_packages(),
     long_description=long_description,
@@ -47,7 +47,7 @@ setup(
     python_requires='>=3.8',
     classifiers=[
         'Framework :: Django',
-        'Intended Audience :: Developers',
+        'Intended Audience :: Developers FrontEnd',
         'Intended Audience :: System Administrators',
         'Operating System :: OS Independent',
         'Topic :: Software Development'

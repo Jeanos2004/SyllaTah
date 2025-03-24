@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        .container { max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif; }
+        .header { background: #DC3545; color: white; padding: 20px; text-align: center; }
+        .content { padding: 20px; background: #f9f9f9; }
+        .footer { text-align: center; padding: 20px; color: #666; }
+        .details { margin: 20px 0; background: white; padding: 15px; border-radius: 5px; }
+        .detail-row { padding: 10px; border-bottom: 1px solid #eee; }
+        .button { background: #007BFF; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; }
+        .refund-info { background: #e9ecef; padding: 15px; margin: 20px 0; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>SyllaTah</h1>
+            <p>Annulation de Réservation</p>
+        </div>
+        <div class="content">
+            <p>Bonjour {{ user.first_name }},</p>
+            <p>Nous confirmons l'annulation de votre réservation.</p>
+            
+            <div class="details">
+                <div class="detail-row">
+                    <strong>Numéro de réservation:</strong> #{{ reservation.id }}
+                </div>
+                <div class="detail-row">
+                    <strong>Service annulé:</strong> {{ service }}
+                </div>
+                <div class="detail-row">
+                    <strong>Date prévue:</strong> {{ reservation.check_in_date|date:"d/m/Y" }}
+                </div>
+            </div>
+
+            <div class="refund-info">
+                <h3>Informations sur le remboursement</h3>
+                <p>Si un paiement a été effectué, le remboursement sera traité selon nos conditions générales. Le montant de {{ total_price }}€ sera remboursé sur votre moyen de paiement initial sous 5-10 jours ouvrés.</p>
+            </div>
+
+            <p style="text-align: center; margin-top: 20px;">
+                <a href="{{ site_url }}/reservations" class="button">
+                    Effectuer une nouvelle réservation
+                </a>
+            </p>
+        </div>
+        <div class="footer">
+            <p>Nous espérons vous revoir bientôt sur SyllaTah !</p>
+            <p>L'équipe SyllaTah</p>
+        </div>
+    </div>
+</body>
+</html>

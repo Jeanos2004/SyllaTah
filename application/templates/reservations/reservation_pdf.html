@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>SyllaTah - Reçu de Réservation</title>
+    <style>
+        @page { 
+            size: a4 portrait;
+            margin: 1.5cm;
+        }
+        body {
+            font-family: 'Helvetica', sans-serif;
+            color: #2c3e50;
+            margin: 0;
+            padding: 0;
+            background: #fff;
+        }
+        .receipt-container {
+            max-width: 100%;
+            margin: 0 auto;
+            border: 2px solid #66bb6a;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .header {
+            background: #66bb6a;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            color: #fff3b0;
+        }
+        .header-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        .main-content {
+            padding: 20px;
+            background: #fff;
+        }
+        .details-section {
+            margin: 20px 0;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px;
+            border-bottom: 1px solid #e8f5e9;
+        }
+        .detail-row:nth-child(even) {
+            background: #f1f8e9;
+        }
+        .detail-label {
+            color: #2e7d32;
+            font-weight: 600;
+            width: 40%;
+        }
+        .detail-value {
+            color: #2c3e50;
+            font-weight: 500;
+            width: 60%;
+            text-align: right;
+        }
+        .total-section {
+            background: #fff3b0;
+            color: #2e7d32;
+            padding: 15px 20px;
+            text-align: right;
+            font-size: 20px;
+            font-weight: bold;
+            margin-top: 20px;
+            border-radius: 5px;
+        }
+        .footer {
+            text-align: center;
+            padding: 15px;
+            font-size: 12px;
+            color: #66bb6a;
+            border-top: 1px solid #e8f5e9;
+            margin-top: 20px;
+        }
+        .status {
+            background: #fff3b0;
+            color: #2e7d32;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="receipt-container">
+        <div class="header">
+            <h1>SyllaTah</h1>
+            <p>Reçu de Réservation #{{ reservation_id }}</p>
+            <div class="header-details">
+                <span>{{ reservation_date|date:"d/m/Y H:i" }}</span>
+                <span class="status">Confirmé</span>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="details-section">
+                <div class="detail-row">
+                    <div class="detail-label">Client</div>
+                    <div class="detail-value">{{ user_name }}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Type de service</div>
+                    <div class="detail-value">{{ Cservice_type }}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Date d'arrivée</div>
+                    <div class="detail-value">{{ check_in_date|date:"d/m/Y" }}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Date de départ</div>
+                    <div class="detail-value">{{ check_out_date|date:"d/m/Y" }}</div>
+                </div>
+            </div>
+
+            <div class="total-section">
+                Total : {{ total_price }} €
+            </div>
+
+            <div class="footer">
+                <p>Merci d'avoir choisi SyllaTah pour votre voyage !</p>
+                <p>Contact : support@syllatah.com</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

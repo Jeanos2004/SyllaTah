@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="SyllaTah - Plateforme touristique complète">
+    <meta name="author" content="SyllaTah">
+
+    <title>SyllaTah - {% block title %}Plateforme Touristique{% endblock %}</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
+    <!-- Custom styles -->
+    <style>
+      :root {
+        --primary-color: #2c3e50;
+        --secondary-color: #3498db;
+        --accent-color: #e74c3c;
+        --light-color: #ecf0f1;
+        --dark-color: #2c3e50;
+      }
+      
+      body {
+        font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+        background-color: #f8f9fa;
+        color: #333;
+      }
+      
+      .navbar {
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        background-color: var(--primary-color);
+      }
+      
+      .navbar-brand {
+        font-weight: 700;
+        color: white !important;
+      }
+      
+      .nav-link {
+        color: rgba(255,255,255,0.85) !important;
+        font-weight: 500;
+        transition: all 0.3s ease;
+      }
+      
+      .nav-link:hover {
+        color: white !important;
+        transform: translateY(-2px);
+      }
+      
+      .navbar-toggler {
+        border: none;
+      }
+      
+      .dropdown-menu {
+        border-radius: 0.5rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        border: none;
+        padding: 0.5rem;
+      }
+      
+      .dropdown-item {
+        padding: 0.5rem 1rem;
+        border-radius: 0.3rem;
+        transition: all 0.2s;
+      }
+      
+      .dropdown-item:hover {
+        background-color: var(--light-color);
+        transform: translateX(5px);
+      }
+      
+      .jumbotron {
+        background-color: white;
+        border-radius: 1rem;
+        padding: 3rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        margin-top: 2rem;
+      }
+      
+      .btn-primary {
+        background-color: var(--secondary-color);
+        border: none;
+        box-shadow: 0 4px 6px rgba(52, 152, 219, 0.2);
+        transition: all 0.3s;
+      }
+      
+      .btn-primary:hover {
+        background-color: #2980b9;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 8px rgba(52, 152, 219, 0.3);
+      }
+      
+      .form-control {
+        border-radius: 0.5rem;
+        border: 1px solid #e0e0e0;
+        padding: 0.75rem 1rem;
+      }
+      
+      .form-control:focus {
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.25);
+        border-color: var(--secondary-color);
+      }
+      
+      .card {
+        border-radius: 1rem;
+        border: none;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        transition: all 0.3s;
+      }
+      
+      .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+      }
+      
+      footer {
+        background-color: var(--primary-color);
+        color: white;
+        padding: 2rem 0;
+        margin-top: 3rem;
+      }
+      
+      .api-response {
+        background-color: #f8f9fa;
+        border-left: 4px solid var(--secondary-color);
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin-top: 1rem;
+        font-family: monospace;
+        white-space: pre-wrap;
+      }
+      
+      .divider {
+        height: 1px;
+        background-color: rgba(0,0,0,0.1);
+        margin: 0.5rem 0;
+      }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+  </head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+      <div class="container">
+        <a class="navbar-brand" href="/">
+          <i class="fas fa-map-marked-alt me-2"></i>SyllaTah
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <div class="collapse navbar-collapse" id="navbarMain">
+          <ul class="navbar-nav me-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="/"><i class="fas fa-home me-1"></i> Accueil</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'api_docs' %}" target="_blank"><i class="fas fa-book me-1"></i> Documentation API</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'schema-redoc' %}" target="_blank"><i class="fas fa-file-alt me-1"></i> ReDoc</a>
+            </li>
+          </ul>
+          
+          <ul class="navbar-nav">
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="apiDropdown" role="button" data-bs-toggle="dropdown">
+                <i class="fas fa-plug me-1"></i> API Endpoints
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li><h6 class="dropdown-header">Authentification</h6></li>
+                <li><a class="dropdown-item" href="{% url 'signup' %}"><i class="fas fa-user-plus me-2"></i>Inscription</a></li>
+                <li><a class="dropdown-item" href="{% url 'login' %}"><i class="fas fa-sign-in-alt me-2"></i>Connexion</a></li>
+                <li><a class="dropdown-item" href="{% url 'email-verification' %}"><i class="fas fa-envelope-open me-2"></i>Vérification email</a></li>
+                <li><a class="dropdown-item" href="{% url 'resend-email-verification' %}"><i class="fas fa-paper-plane me-2"></i>Renvoyer vérification</a></li>
+                <li><a class="dropdown-item" href="{% url 'password-reset' %}"><i class="fas fa-key me-2"></i>Réinitialiser mot de passe</a></li>
+                <li><div class="divider"></div></li>
+                <li><h6 class="dropdown-header">Compte utilisateur</h6></li>
+                <li><a class="dropdown-item" href="{% url 'user-details' %}"><i class="fas fa-id-card me-2"></i>Détails utilisateur</a></li>
+                <li><a class="dropdown-item" href="{% url 'password-change' %}"><i class="fas fa-lock me-2"></i>Changer mot de passe</a></li>
+                <li><a class="dropdown-item" href="{% url 'logout' %}"><i class="fas fa-sign-out-alt me-2"></i>Déconnexion</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container py-4">
+      {% block content %}{% endblock %}
+    </div>
+    
+    <!-- Footer -->
+    <footer>
+      <div class="container">
+        <div class="row">
+          <div class="col-md-6">
+            <h5>SyllaTah</h5>
+            <p>Plateforme touristique complète pour la gestion d'hébergements, de transports et d'activités.</p>
+          </div>
+          <div class="col-md-3">
+            <h5>Liens</h5>
+            <ul class="list-unstyled">
+              <li><a href="/" class="text-white">Accueil</a></li>
+              <li><a href="{% url 'api_docs' %}" class="text-white">API</a></li>
+              <li><a href="#" class="text-white">Contact</a></li>
+            </ul>
+          </div>
+          <div class="col-md-3">
+            <h5>Légal</h5>
+            <ul class="list-unstyled">
+              <li><a href="#" class="text-white">Conditions d'utilisation</a></li>
+              <li><a href="#" class="text-white">Politique de confidentialité</a></li>
+            </ul>
+          </div>
+        </div>
+        <hr class="bg-white my-4">
+        <div class="text-center">
+          <p>&copy; {% now "Y" %} SyllaTah. Tous droits réservés.</p>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- jQuery (for AJAX forms) -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    
+    <script type="text/javascript">
+      // Fonction pour gérer les réponses d'erreur de l'API
+      var error_response = function(data){
+        $('.api-response').html(`<div class="alert alert-danger">
+          <strong>Erreur ${data.status}:</strong> ${data.statusText}
+          <hr>
+          <pre>${data.responseText}</pre>
+        </div>`);
+      }
+      
+      // Fonction pour gérer les réponses réussies de l'API
+      var susccess_response = function(data){
+        $('.api-response').html(`<div class="alert alert-success">
+          <strong>Succès!</strong> La requête a été traitée avec succès.
+          <hr>
+          <pre>${JSON.stringify(data, null, 2)}</pre>
+        </div>`);
+      }
+
+      // Gestionnaire pour les formulaires AJAX
+      $(document).ready(function(){
+        $('form.ajax-post').on('submit', function(e){
+          e.preventDefault();
+          
+          var form = $(this);
+          var submitBtn = form.find('button[type=submit]');
+          var originalText = submitBtn.html();
+          
+          // Afficher un indicateur de chargement
+          submitBtn.html('<span class="spinner-border spinner-border-sm me-2"></span>Traitement...');
+          submitBtn.prop('disabled', true);
+          
+          $.post(form.attr('action'), form.serialize())
+            .fail(function(data){
+              error_response(data);
+            })
+            .done(function(data){
+              susccess_response(data);
+            })
+            .always(function(){
+              // Restaurer le bouton
+              submitBtn.html(originalText);
+              submitBtn.prop('disabled', false);
+            });
+        });
+      });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+  </body>
+</html>

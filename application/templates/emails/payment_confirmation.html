@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        .container { max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif; }
+        .header { background: #28A745; color: white; padding: 20px; text-align: center; }
+        .content { padding: 20px; background: #f9f9f9; }
+        .footer { text-align: center; padding: 20px; color: #666; }
+        .details { margin: 20px 0; background: white; padding: 15px; border-radius: 5px; }
+        .detail-row { padding: 10px; border-bottom: 1px solid #eee; }
+        .button { background: #28A745; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; }
+        .payment-info { background: #e9ecef; padding: 15px; margin: 20px 0; border-radius: 5px; }
+        .success-icon { font-size: 48px; color: #28A745; text-align: center; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>SyllaTah</h1>
+            <p>Confirmation de Paiement</p>
+        </div>
+        <div class="content">
+            <div class="success-icon">✓</div>
+            <p>Bonjour {{ user.first_name }},</p>
+            <p>Nous confirmons la réception de votre paiement pour votre réservation.</p>
+            
+            <div class="details">
+                <div class="detail-row">
+                    <strong>Numéro de réservation:</strong> #{{ reservation.id }}
+                </div>
+                <div class="detail-row">
+                    <strong>Service:</strong> {{ service }}
+                </div>
+                <div class="detail-row">
+                    <strong>Montant payé:</strong> {{ total_price }}€
+                </div>
+                <div class="detail-row">
+                    <strong>Date de paiement:</strong> {% now "d/m/Y H:i" %}
+                </div>
+            </div>
+
+            <div class="payment-info">
+                <h3>Récapitulatif de la réservation</h3>
+                <p>Date d'arrivée: {{ reservation.check_in_date|date:"d/m/Y" }}</p>
+                <p>Date de départ: {{ reservation.check_out_date|date:"d/m/Y" }}</p>
+            </div>
+
+            <p style="text-align: center; margin-top: 20px;">
+                <a href="{{ site_url }}/reservations/{{ reservation.id }}" class="button">
+                    Voir ma réservation
+                </a>
+            </p>
+        </div>
+        <div class="footer">
+            <p>Merci de votre confiance !</p>
+            <p>L'équipe SyllaTah</p>
+            <p><small>Conservez cet email comme justificatif de paiement.</small></p>
+        </div>
+    </div>
+</body>
+</html>

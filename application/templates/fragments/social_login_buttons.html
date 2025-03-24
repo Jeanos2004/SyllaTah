@@ -1,0 +1,98 @@
+<!-- Boutons de connexion sociale -->
+<div class="social-login-container">
+  <div class="social-login-title">
+    <span>Ou connectez-vous avec</span>
+  </div>
+  
+  <div class="social-login-buttons">
+    <!-- Bouton Facebook -->
+    <a href="/auth/facebook/" class="btn btn-facebook">
+      <i class="fab fa-facebook-f"></i> Facebook
+    </a>
+    
+    <!-- Bouton Google -->
+    <a href="/auth/google/" class="btn btn-google">
+      <i class="fab fa-google"></i> Google
+    </a>
+    
+    <!-- Bouton Twitter (X) -->
+    <a href="/auth/twitter/" class="btn btn-twitter">
+      <i class="fab fa-twitter"></i> Twitter
+    </a>
+  </div>
+</div>
+
+<!-- Styles pour les boutons de connexion sociale -->
+<style>
+  .social-login-container {
+    margin-top: 20px;
+    text-align: center;
+  }
+  
+  .social-login-title {
+    position: relative;
+    margin-bottom: 20px;
+  }
+  
+  .social-login-title span {
+    background-color: #fff;
+    padding: 0 10px;
+    position: relative;
+    z-index: 1;
+    color: #777;
+  }
+  
+  .social-login-title:before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background-color: #e0e0e0;
+    z-index: 0;
+  }
+  
+  .social-login-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+  
+  .btn-facebook, .btn-google, .btn-twitter {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 120px;
+    padding: 8px 15px;
+    border-radius: 4px;
+    color: white;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-facebook {
+    background-color: #3b5998;
+  }
+  
+  .btn-google {
+    background-color: #db4437;
+  }
+  
+  .btn-twitter {
+    background-color: #1da1f2;
+  }
+  
+  .btn-facebook:hover, .btn-google:hover, .btn-twitter:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+    color: white;
+    text-decoration: none;
+  }
+  
+  .btn-facebook i, .btn-google i, .btn-twitter i {
+    margin-right: 8px;
+  }
+</style>

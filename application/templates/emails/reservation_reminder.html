@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        .container { max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif; }
+        .header { background: #FFA500; color: white; padding: 20px; text-align: center; }
+        .content { padding: 20px; background: #f9f9f9; }
+        .footer { text-align: center; padding: 20px; color: #666; }
+        .details { margin: 20px 0; background: white; padding: 15px; border-radius: 5px; }
+        .detail-row { padding: 10px; border-bottom: 1px solid #eee; }
+        .button { background: #FFA500; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; }
+        .important { color: #FFA500; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>SyllaTah</h1>
+            <p>Rappel de votre réservation</p>
+        </div>
+        <div class="content">
+            <p>Bonjour {{ user.first_name }},</p>
+            <p>Nous vous rappelons que votre séjour commence <span class="important">demain</span>.</p>
+            
+            <div class="details">
+                <div class="detail-row">
+                    <strong>Service réservé:</strong> {{ service }}
+                </div>
+                <div class="detail-row">
+                    <strong>Date d'arrivée:</strong> {{ reservation.check_in_date|date:"d/m/Y" }}
+                </div>
+                <div class="detail-row">
+                    <strong>Date de départ:</strong> {{ reservation.check_out_date|date:"d/m/Y" }}
+                </div>
+            </div>
+
+            <p style="text-align: center; margin-top: 20px;">
+                <a href="{{ site_url }}/reservations/{{ reservation.id }}" class="button">
+                    Voir les détails
+                </a>
+            </p>
+
+            <p>N'oubliez pas de préparer :</p>
+            <ul>
+                <li>Une pièce d'identité valide</li>
+                <li>Votre numéro de réservation (#{{ reservation.id }})</li>
+                <li>Le moyen de paiement utilisé lors de la réservation</li>
+            </ul>
+        </div>
+        <div class="footer">
+            <p>Nous vous souhaitons un excellent séjour !</p>
+            <p>L'équipe SyllaTah</p>
+        </div>
+    </div>
+</body>
+</html>
