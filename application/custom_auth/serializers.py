@@ -2,10 +2,94 @@ from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.forms import SetPasswordForm, PasswordResetForm
 from django.urls import exceptions as url_exceptions
+from dj_rest_auth.serializers import LoginSerializer as BaseLoginSerializer
+from rest_framework import serializers
+from rest_framework.authtoken.models import Token
+from rest_framework.compat import coreapi, coreschema
 from django.utils.encoding import force_str
 from django.utils.translation import gettext_lazy as _
 from rest_framework import exceptions, serializers
 from rest_framework.exceptions import ValidationError
+from django.utils import timezone
+from rest_framework import serializers
+from .models import CustomUser
+from dj_rest_auth.registration.serializers import RegisterSerializer
+
+class CustomUserSerializer(serializers.ModelSerializer):
+    """
+    Serializer pour le modèle CustomUser avec validation personnalisée.
+    Gère les données des utilisateurs du système de lodge.
+    """
+    # Champ calculé pour déterminer le rôle de l'utilisateur
+    role = serializers.SerializerMethodField()
+    
+    # Champ pour la validation du mot de passe lors de la création
+    password = serializers.CharField(write_only=True, required=False)
+
+    class Meta:
+        model = CustomUser
+        fields = (
+            'id', 
+            'username', 
+            'email', 
+            'lodge_id',
+            'is_lodge_admin', 
+            'phone_number', 
+            'position',
+            'role',
+            'password'
+        )
+        read_only_fields = ('id', 'is_lodge_admin', 'role')
+        extra_kwargs = {
+            'password': {'write_only': True},
+            'email': {'required': True}
+        }
+
+    def get_role(self, obj):
+        """
+        Détermine le rôle de l'utilisateur basé sur ses attributs
+        Returns:
+            str: 'admin', 'staff', ou 'guest'
+        """
+        if obj.is_lodge_admin:
+            return 'admin'
+        elif obj.lodge_id:
+            return 'staff'
+        return 'guest'
+
+    def validate_lodge_id(self, value):
+        """
+        Valide que le lodge_id correspond à un lodge existant
+        """
+        if value:
+            from lodge.models import Lodge
+            try:
+                Lodge.objects.get(id=value)
+            except Lodge.DoesNotExist:
+                raise serializers.ValidationError("Lodge specified does not exist")
+        return value
+
+    def create(self, validated_data):
+        """
+        Crée un nouvel utilisateur avec un mot de passe hashé
+        """
+        password = validated_data.pop('password', None)
+        user = super().create(validated_data)
+        if password:
+            user.set_password(password)
+            user.save()
+        return user
+
+    def update(self, instance, validated_data):
+        """
+        Met à jour un utilisateur existant en gérant le mot de passe séparément
+        """
+        password = validated_data.pop('password', None)
+        user = super().update(instance, validated_data)
+        if password:
+            user.set_password(password)
+            user.save()
+        return user
 
 from .app_settings import api_settings
 
@@ -17,11 +101,15 @@ from .models import TokenModel
 # Get the UserModel
 UserModel = get_user_model()
 
-
-class LoginSerializer(serializers.Serializer):
-    username = serializers.CharField(required=False, allow_blank=True)
+class LoginSerializer(BaseLoginSerializer):
+    """
+    Serializer personnalisé pour la connexion des utilisateurs du lodge.
+    Permet l'authentification par email ou username avec validation du lodge_id.
+    """
+    """ username = serializers.CharField(required=False, allow_blank=True)
     email = serializers.EmailField(required=False, allow_blank=True)
     password = serializers.CharField(style={'input_type': 'password'})
+    lodge_id = serializers.UUIDField(required=False)  # Optionnel pour les admins généraux
 
     def authenticate(self, **kwargs):
         return authenticate(self.context['request'], **kwargs)
@@ -32,7 +120,6 @@ class LoginSerializer(serializers.Serializer):
         else:
             msg = _('Must include "email" and "password".')
             raise exceptions.ValidationError(msg)
-
         return user
 
     def _validate_username(self, username, password):
@@ -41,8 +128,57 @@ class LoginSerializer(serializers.Serializer):
         else:
             msg = _('Must include "username" and "password".')
             raise exceptions.ValidationError(msg)
-
         return user
+
+    def get_auth_user(self, username, email, password):
+        
+        #Authentifie l'utilisateur avec email ou username
+    
+        if email:
+            user = self._validate_email(email, password)
+        elif username:
+            user = self._validate_username(username, password)
+        else:
+            raise exceptions.ValidationError(_('Must include either "username" or "email".'))
+        return user
+
+    def validate(self, attrs):
+        username = attrs.get('username')
+        email = attrs.get('email')
+        password = attrs.get('password')
+        lodge_id = attrs.get('lodge_id')
+
+        user = self.get_auth_user(username, email, password)
+
+        if not user:
+            raise exceptions.ValidationError(_('Invalid credentials.'))
+
+        if not user.is_active:
+            raise exceptions.ValidationError(_('User account is disabled.'))
+
+        # Validation spécifique au lodge
+        if lodge_id:
+            if user.lodge_id and user.lodge_id != lodge_id:
+                raise exceptions.ValidationError(_('User is not associated with this lodge.'))
+        elif user.lodge_id and not user.is_lodge_admin:
+            raise exceptions.ValidationError(_('Lodge ID is required for staff members.'))
+
+        # Vérification email si nécessaire
+        if 'dj_rest_auth.registration' in settings.INSTALLED_APPS:
+            self.validate_email_verification_status(user)
+
+        attrs['user'] = user
+        return attrs
+
+    @staticmethod
+    def validate_email_verification_status(user):
+        from allauth.account import app_settings as allauth_account_settings
+        if (
+            'allauth' in settings.INSTALLED_APPS and
+            allauth_account_settings.EMAIL_VERIFICATION == allauth_account_settings.EmailVerificationMethod.MANDATORY and 
+            not user.emailaddress_set.filter(email=user.email, verified=True).exists()
+        ):
+            raise serializers.ValidationError(_('E-mail is not verified.'))
 
     def _validate_username_email(self, username, email, password):
         if email and password:
@@ -82,13 +218,13 @@ class LoginSerializer(serializers.Serializer):
         return None
 
     def get_auth_user(self, username, email, password):
-        """
+    
         Retrieve the auth user from given POST payload by using
         either `allauth` auth scheme or bare Django auth scheme.
 
         Returns the authenticated user instance if credentials are correct,
         else `None` will be returned
-        """
+    
         if 'allauth' in settings.INSTALLED_APPS:
 
             # When `is_active` of a user is set to False, allauth tries to return template html
@@ -133,7 +269,31 @@ class LoginSerializer(serializers.Serializer):
 
         attrs['user'] = user
         return attrs
+ """
+    lodge_id = serializers.UUIDField(required=False)
+    last_login_date = serializers.DateTimeField(read_only=True)
 
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        user = attrs['user']
+        lodge_id = attrs.get('lodge_id')
+
+        # Validation améliorée pour le lodge
+        if lodge_id:
+            if not hasattr(user, 'lodge_id'):
+                raise serializers.ValidationError(_('Cet utilisateur ne peut pas être associé à un lodge'))
+            if user.lodge_id and user.lodge_id != lodge_id:
+                raise serializers.ValidationError(_('Utilisateur non associé à ce lodge'))
+        elif getattr(user, 'lodge_id', None) and not user.is_lodge_admin:
+            raise serializers.ValidationError(_('ID du lodge requis pour les membres du staff'))
+
+        # Ajout de la date de dernière connexion
+        from django.utils import timezone
+        user.last_login = timezone.now()
+        user.save(update_fields=['last_login'])
+        attrs['last_login_date'] = user.last_login
+
+        return attrs
 
 class TokenSerializer(serializers.ModelSerializer):
     """
@@ -353,3 +513,82 @@ class PasswordChangeSerializer(serializers.Serializer):
         if not self.logout_on_password_change:
             from django.contrib.auth import update_session_auth_hash
             update_session_auth_hash(self.request, self.user)
+
+
+class LoginResponseSerializer(serializers.Serializer):
+    user = CustomUserSerializer()
+    access_token = serializers.CharField()
+    refresh_token = serializers.CharField()
+    lodge_info = serializers.SerializerMethodField()
+    session_info = serializers.SerializerMethodField()
+    permissions = serializers.SerializerMethodField()
+
+    def get_session_info(self, obj):
+        request = self.context.get('request')
+        return {
+            'ip_address': request.META.get('REMOTE_ADDR'),
+            'device': request.META.get('HTTP_USER_AGENT', ''),
+            'login_time': timezone.now().isoformat()
+        }
+
+    def get_permissions(self, obj):
+        user = obj['user']
+        return {
+            'can_manage_lodge': user.is_lodge_admin,
+            'can_manage_users': user.is_staff or user.is_lodge_admin,
+            'can_view_reports': user.is_lodge_admin or (user.lodge_id is not None)
+        }
+
+    def get_lodge_info(self, obj):
+        user = obj['user']
+        if not user.lodge_id:
+            return None
+        
+        from lodge.models import Lodge
+        try:
+            lodge = Lodge.objects.get(id=user.lodge_id)
+            return {
+                'id': lodge.id,
+                'name': lodge.name,
+                'role': 'admin' if user.is_lodge_admin else 'staff'
+            }
+        except Lodge.DoesNotExist:
+            return None
+
+class UserSessionSerializer(serializers.Serializer):
+    device_type = serializers.CharField(required=False)
+    ip_address = serializers.IPAddressField(required=False)
+    last_activity = serializers.DateTimeField(read_only=True)
+
+    def validate(self, attrs):
+        request = self.context.get('request')
+        attrs['ip_address'] = request.META.get('REMOTE_ADDR')
+        attrs['device_type'] = request.META.get('HTTP_USER_AGENT', '')
+        attrs['last_activity'] = timezone.now()
+        return attrs
+
+
+class TokenValidationSerializer(serializers.Serializer):
+    token = serializers.CharField()
+    lodge_id = serializers.UUIDField(required=False)
+
+    def validate(self, attrs):
+        from rest_framework_simplejwt.tokens import AccessToken
+        from django.core.exceptions import ValidationError
+        
+        try:
+            token = AccessToken(attrs['token'])
+            user_id = token.payload.get('user_id')
+            user = CustomUser.objects.get(id=user_id)
+            
+            if attrs.get('lodge_id') and user.lodge_id != attrs['lodge_id']:
+                raise serializers.ValidationError(_('Token non valide pour ce lodge'))
+                
+            attrs['user'] = user
+            attrs['token_exp'] = datetime.fromtimestamp(token.payload['exp'])
+            
+        except (ValidationError, CustomUser.DoesNotExist):
+            raise serializers.ValidationError(_('Token invalide'))
+            
+        return attrs
+

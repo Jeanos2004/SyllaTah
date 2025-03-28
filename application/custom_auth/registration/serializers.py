@@ -1,4 +1,6 @@
 from allauth.socialaccount.providers.oauth2.client import OAuth2Error
+from dj_rest_auth.registration.serializers import RegisterSerializer
+
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import IntegrityError
@@ -220,8 +222,33 @@ class SocialConnectMixin:
 class SocialConnectSerializer(SocialConnectMixin, SocialLoginSerializer):
     pass
 
+class CustomRegisterSerializer(RegisterSerializer):
+    phone_number = serializers.CharField(max_length=20, required=False)
+    position = serializers.CharField(max_length=100, required=False)
+    lodge_id = serializers.UUIDField(required=False)
+    is_lodge_admin = serializers.BooleanField(default=False, required=False)
 
-class RegisterSerializer(serializers.Serializer):
+    def get_cleaned_data(self):
+        data = super().get_cleaned_data()
+        data.update({
+            'phone_number': self.validated_data.get('phone_number', ''),
+            'position': self.validated_data.get('position', ''),
+            'lodge_id': self.validated_data.get('lodge_id', None),
+            'is_lodge_admin': self.validated_data.get('is_lodge_admin', False),
+        })
+        return data
+
+    def custom_signup(self, request, user):
+        user.phone_number = self.cleaned_data.get('phone_number', '')
+        user.position = self.cleaned_data.get('position', '')
+        user.lodge_id = self.cleaned_data.get('lodge_id')
+        user.is_lodge_admin = self.cleaned_data.get('is_lodge_admin', False)
+        user.save()
+
+
+
+
+""" class CustomRegisterSerializer(RegisterSerializer):
     username = serializers.CharField(
         max_length=get_username_max_length(),
         min_length=allauth_account_settings.USERNAME_MIN_LENGTH,
@@ -230,6 +257,29 @@ class RegisterSerializer(serializers.Serializer):
     email = serializers.EmailField(required=allauth_account_settings.EMAIL_REQUIRED)
     password1 = serializers.CharField(write_only=True)
     password2 = serializers.CharField(write_only=True)
+    # Ajout des champs spécifiques au lodge
+    first_name = serializers.CharField(required=True)
+    last_name = serializers.CharField(required=True)
+    phone_number = serializers.CharField(required=False, allow_blank=True)
+    position = serializers.CharField(required=False, allow_blank=True)
+
+    def get_cleaned_data(self):
+        return {
+            'username': self.validated_data.get('username', ''),
+            'password1': self.validated_data.get('password1', ''),
+            'email': self.validated_data.get('email', ''),
+            'first_name': self.validated_data.get('first_name', ''),
+            'last_name': self.validated_data.get('last_name', ''),
+            'phone_number': self.validated_data.get('phone_number', ''),
+            'position': self.validated_data.get('position', ''),
+        }
+
+    def custom_signup(self, request, user):
+        user.phone_number = self.cleaned_data.get('phone_number', '')
+        user.position = self.cleaned_data.get('position', '')
+        user.first_name = self.cleaned_data.get('first_name')
+        user.last_name = self.cleaned_data.get('last_name')
+        user.save()
 
     def validate_username(self, username):
         username = get_adapter().clean_username(username)
@@ -279,7 +329,7 @@ class RegisterSerializer(serializers.Serializer):
         setup_user_email(request, user, [])
         return user
 
-
+ """
 class VerifyEmailSerializer(serializers.Serializer):
     key = serializers.CharField(write_only=True)
 

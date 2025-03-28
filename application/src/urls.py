@@ -1,10 +1,12 @@
-from django.urls import include, re_path
+from django.urls import include, re_path, path
 from django.contrib import admin
 
 from django.views.generic import RedirectView, TemplateView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 
 schema_view = SpectacularAPIView.as_view()
+
+from src.admin_dashboard import admin_dashboard
 
 urlpatterns = [
     # Pages HTML (frontend)
@@ -29,7 +31,9 @@ urlpatterns = [
     re_path(r'^accounts/', include('allauth.urls')),
 
     # Admin
+    path('admin/dashboard/', admin_dashboard, name='admin_dashboard'), 
     re_path(r'^admin/', admin.site.urls),
+    
 
     # Redirection du profil utilisateur
     re_path(r'^accounts/profile/$', RedirectView.as_view(url='/', permanent=True), name='profile-redirect'),
@@ -46,5 +50,5 @@ urlpatterns = [
     re_path(r'^api/transports/', include('transports.urls')),
     re_path(r'^api/activities/', include('activities.urls')),
     re_path(r'^api/blog/', include('blog.urls')),
-    re_path(r'^api/reservations/', include('reservations.urls')),
+    re_path(r'api/reservations/', include('reservations.urls')),
 ]

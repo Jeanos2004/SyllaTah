@@ -1,0 +1,8 @@
+#1 Je dois programmer la duree avant netoyage de mon fichier de monitoring app_monitoring(Hebdomairement probablement)
+
+#4 Gestion de la Reservation .. y effectuer quelques reglages en integrant la fonctionnalite de Payment avec Stripe
+   # Quand je modifie le statue de payment d'une reservation ..les modifications ne prennent pas effet
+   # Integrer la fonctionnalite de payment avec Stripe
+   # Pour cela faudra voir si la fonctionnalite ou un mail est envoye a chaque reservation pour confirmer sa reservation fonctionne bel et bien
+   ## parce que j'ai l'impression que pas vraiment 
+

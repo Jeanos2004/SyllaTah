@@ -1,9 +1,33 @@
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from rest_framework.authtoken.models import Token as DefaultTokenModel
+from django.db import models
+import uuid
+from django.contrib.auth.models import AbstractUser
 
 from .app_settings import api_settings
 
+
+class CustomUser(AbstractUser):
+    lodge_id = models.UUIDField(unique=True, null=True, blank=True)
+    is_lodge_admin = models.BooleanField(default=False)
+    phone_number = models.CharField(max_length=20, blank=True)
+    position = models.CharField(max_length=100, blank=True)
+
+    class Meta:
+        db_table = 'auth_user'
+        verbose_name = 'user'
+        verbose_name_plural = 'users'
+
+    def is_lodge_staff(self):
+        return bool(self.lodge_id)
+
+    def get_lodge_role(self):
+        if self.is_lodge_admin:
+            return 'admin'
+        elif self.lodge_id:
+            return 'staff'
+        return None
 
 def get_token_model():
     token_model = api_settings.TOKEN_MODEL

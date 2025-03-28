@@ -25,6 +25,12 @@ from dj_rest_auth.registration.serializers import (
 from dj_rest_auth.utils import jwt_encode
 from dj_rest_auth.views import LoginView
 
+from custom_auth.registration.serializers import CustomRegisterSerializer
+
+
+
+
+
 
 sensitive_post_parameters_m = method_decorator(
     sensitive_post_parameters('password1', 'password2'),
@@ -37,7 +43,8 @@ class RegisterView(CreateAPIView):
 
     Accepts the following POST parameters: username, email, password1, password2.
     """
-    serializer_class = api_settings.REGISTER_SERIALIZER
+    """ serializer_class = api_settings.REGISTER_SERIALIZER """
+    serializer_class = CustomRegisterSerializer
     permission_classes = api_settings.REGISTER_PERMISSION_CLASSES
     token_model = TokenModel
     throttle_scope = 'dj_rest_auth'

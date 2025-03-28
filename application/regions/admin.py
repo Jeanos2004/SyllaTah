@@ -5,4 +5,6 @@ from .models import Region
 # Register your models here.
 
 
-admin.site.register(Region)
+@admin.register(Region)
+class RegionAdmin(admin.ModelAdmin):
+    list_display = ['name', 'description']

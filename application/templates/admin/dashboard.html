@@ -1,0 +1,209 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrahead %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    .dashboard-container {
+        padding: 1rem;
+        background-color: #f8f9fa;
+        width: 100%;
+    }
+    
+    .stats-overview {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stat-box {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #2c3e50;
+        margin: 0.5rem 0;
+    }
+    
+    .stat-label {
+        color: #7f8c8d;
+        font-size: 0.9rem;
+    }
+    
+    .charts-container {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 2rem;
+    }
+    
+    .chart-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .chart-title {
+        font-size: 1.2rem;
+        color: #2c3e50;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #eee;
+    }
+
+    @media (max-width: 1024px) {
+        .stats-overview {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        .charts-container {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="stats-overview">
+        <div class="stat-box">
+            <div class="stat-label">Total Réservations</div>
+            <div class="stat-number">{{ total_reservations }}</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-label">Réservations Confirmées</div>
+            <div class="stat-number">{{ confirmed_reservations }}</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-label">En Attente</div>
+            <div class="stat-number">{{ pending_reservations }}</div>
+        </div>
+    </div>
+
+    <div class="charts-container">
+        <div class="chart-card">
+            <h3 class="chart-title">Réservations par Statut</h3>
+            <canvas id="reservationsChart"></canvas>
+        </div>
+        
+        <div class="chart-card">
+            <h3 class="chart-title">Revenus Mensuels</h3>
+            <canvas id="revenueChart"></canvas>
+        </div>
+        
+        <div class="chart-card">
+            <h3 class="chart-title">Services Réservés</h3>
+            <canvas id="servicesChart"></canvas>
+        </div>
+        
+        <div class="chart-card">
+            <h3 class="chart-title">Tendances des Réservations</h3>
+            <canvas id="trendsChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Configuration commune pour les graphiques
+    Chart.defaults.color = '#2c3e50';
+    Chart.defaults.font.family = "'Helvetica Neue', 'Helvetica', 'Arial', sans-serif";
+
+    // Graphique des réservations
+    new Chart(document.getElementById('reservationsChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Confirmées', 'En attente', 'Autres'],
+            datasets: [{
+                data: [
+                    {{ confirmed_reservations }},
+                    {{ pending_reservations }},
+                    {{ total_reservations }} - {{ confirmed_reservations }} - {{ pending_reservations }}
+                ],
+                backgroundColor: ['#2ecc71', '#f1c40f', '#e74c3c'],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // Graphique des revenus
+    new Chart(document.getElementById('revenueChart'), {
+        type: 'line',
+        data: {
+            labels: [{% for item in monthly_revenue %}'{{ item.month|date:"F Y" }}'{% if not forloop.last %}, {% endif %}{% endfor %}],
+            datasets: [{
+                label: 'Revenus (€)',
+                data: [{% for item in monthly_revenue %}{{ item.total }}{% if not forloop.last %}, {% endif %}{% endfor %}],
+                borderColor: '#3498db',
+                backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        drawBorder: false
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+
+    // Graphique des services
+    new Chart(document.getElementById('servicesChart'), {
+        type: 'bar',
+        data: {
+            labels: ['Hébergements', 'Transports', 'Activités'],
+            datasets: [{
+                label: 'Nombre de réservations',
+                data: [
+                    {{ service_stats.accommodation }},
+                    {{ service_stats.transport }},
+                    {{ service_stats.activity }}
+                ],
+                backgroundColor: ['#9b59b6', '#3498db', '#e67e22']
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        drawBorder: false
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

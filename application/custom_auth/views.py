@@ -13,6 +13,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from .serializers import LoginResponseSerializer, LoginSerializer, UserSessionSerializer
+
 from .app_settings import api_settings
 from .models import get_token_model
 from .utils import jwt_encode
@@ -36,7 +38,8 @@ class LoginView(GenericAPIView):
     Return the REST Framework Token Object's key.
     """
     permission_classes = (AllowAny,)
-    serializer_class = api_settings.LOGIN_SERIALIZER
+    #serializer_class = api_settings.LOGIN_SERIALIZER
+    serializer_class = LoginSerializer
     throttle_scope = 'dj_rest_auth'
 
     user = None
@@ -118,14 +121,58 @@ class LoginView(GenericAPIView):
             from .jwt_auth import set_jwt_cookies
             set_jwt_cookies(response, self.access_token, self.refresh_token)
         return response
-
     def post(self, request, *args, **kwargs):
+        # Ajout de la vérification des tentatives de connexion
+        ip_address = request.META.get('REMOTE_ADDR')
+        username = request.data.get('username', '')
+        
+        if self.check_login_attempts(ip_address, username):
+            return Response({
+                'detail': _('Trop de tentatives de connexion. Veuillez réessayer dans 15 minutes.')
+            }, status=status.HTTP_429_TOO_MANY_REQUESTS)
+
+        login_serializer = LoginSerializer(data=request.data, context={'request': request})
+        login_serializer.is_valid(raise_exception=True)
+        
+        user = login_serializer.validated_data['user']
+        
+        # Création de la session
+        session_serializer = UserSessionSerializer(data={}, context={'request': request})
+        session_serializer.is_valid()
+        session_data = session_serializer.validated_data
+        
+        # Génération des tokens
+        if api_settings.USE_JWT:
+            access_token, refresh_token = jwt_encode(user)
+            tokens = {
+                'access': access_token,
+                'refresh': refresh_token
+            }
+        else:
+            token_model = get_token_model()
+            token = api_settings.TOKEN_CREATOR(token_model, user, login_serializer)
+            tokens = {
+                'access': token.key,
+                'refresh': None
+            }
+        
+        # Préparation de la réponse
+        response_data = {
+            'user': user,
+            'access_token': tokens['access'],
+            'refresh_token': tokens['refresh'],
+        }
+        
+        response_serializer = LoginResponseSerializer(response_data, context={'request': request})
+        return Response(response_serializer.data)
+
+    """ def post(self, request, *args, **kwargs):
         self.request = request
         self.serializer = self.get_serializer(data=self.request.data)
         self.serializer.is_valid(raise_exception=True)
 
         self.login()
-        return self.get_response()
+        return self.get_response() """
 
 
 class LogoutView(APIView):
@@ -316,3 +363,25 @@ class PasswordChangeView(GenericAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response({'detail': _('New password has been saved.')})
+
+
+    def check_login_attempts(self, ip_address, username):
+        from django.core.cache import cache
+        
+        # Clés pour le cache
+        ip_key = f'login_attempts_ip_{ip_address}'
+        username_key = f'login_attempts_username_{username}'
+        
+        # Obtenir les tentatives actuelles
+        ip_attempts = cache.get(ip_key, 0)
+        username_attempts = cache.get(username_key, 0)
+        
+        # Vérifier les limites
+        if ip_attempts >= 10 or username_attempts >= 5:
+            return True
+            
+        # Incrémenter les compteurs
+        cache.set(ip_key, ip_attempts + 1, timeout=900)  # 15 minutes
+        cache.set(username_key, username_attempts + 1, timeout=900)
+        
+        return False

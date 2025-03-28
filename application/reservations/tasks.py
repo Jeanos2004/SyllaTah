@@ -1,13 +1,9 @@
-from celery import shared_task
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
-from django.utils import timezone
-from datetime import timedelta
 from .models import Reservation, EmailLog
 
-@shared_task(bind=True, max_retries=3)
-def send_reservation_email(self, reservation_id, email_type):
+def send_reservation_email(reservation_id, email_type):
     try:
         reservation = Reservation.objects.get(id=reservation_id)
         
@@ -30,7 +26,7 @@ def send_reservation_email(self, reservation_id, email_type):
             'user': reservation.user,
             'service': reservation.service_type,
             'total_price': reservation.total_price,
-            'site_url': 'http://localhost:3000'  # À adapter selon votre environnement
+            'site_url': 'http://localhost:3000'
         }
 
         html_content = render_to_string(templates[email_type], context)
@@ -51,25 +47,14 @@ def send_reservation_email(self, reservation_id, email_type):
             status='sent',
             recipient=reservation.user.email
         )
+        return True
 
     except Exception as e:
         EmailLog.objects.create(
             reservation_id=reservation_id,
             email_type=email_type,
             status='failed',
-            recipient=reservation.user.email if reservation else 'unknown',
+            recipient=reservation.user.email if 'reservation' in locals() else 'unknown',
             error_message=str(e)
         )
-        raise self.retry(exc=e, countdown=300)  # Retry after 5 minutes
-
-@shared_task
-def send_reminder_notifications():
-    """Envoie des rappels pour les réservations à venir"""
-    tomorrow = timezone.now().date() + timedelta(days=1)
-    upcoming = Reservation.objects.filter(
-        check_in_date=tomorrow,
-        status='confirmed'
-    )
-    
-    for reservation in upcoming:
-        send_reservation_email.delay(reservation.id, 'reminder')
+        return False
