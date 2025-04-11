@@ -1,4 +1,5 @@
 from django.db import models
+import uuid
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.contrib.auth import authenticate, get_user_model
 from rest_framework.fields import MaxLengthValidator
@@ -6,6 +7,7 @@ from rest_framework.fields import MaxLengthValidator
 
 User = get_user_model()
 class ActivityCategory(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     icon = models.ImageField(upload_to='activities/categories/', null=True, blank=True)
@@ -24,6 +26,7 @@ class Activity(models.Model):
         ('expert', 'Expert')
     ]
 
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=200)
     category = models.ForeignKey(ActivityCategory, on_delete=models.SET_NULL, null=True)
     description = models.TextField()
@@ -57,6 +60,7 @@ class Activity(models.Model):
         self.save()
 
 class ActivityReview(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     activity = models.ForeignKey(Activity, on_delete=models.CASCADE, related_name='reviews')
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     rating = models.IntegerField(

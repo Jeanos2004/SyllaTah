@@ -1,24 +1,36 @@
-from rest_framework import viewsets, permissions, filters
+from logging import Logger
+from rest_framework import viewsets, permissions, filters, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from django.shortcuts import get_object_or_404
-from django.db.models import Count, Avg, Sum
+from django.db.models import Count, Avg, Sum, Q
 from django.utils import timezone
+from django.db.models.functions import TruncMonth, ExtractQuarter
 from datetime import timedelta
 from django_filters.rest_framework import DjangoFilterBackend
 
-from .models import Lodge, LodgeAccommodation, LodgeActivity, LodgeStaff, LodgeAmenity, LodgeReview, LodgeGallery
+from .models import Lodge, LodgeAccommodation, LodgeActivity
 from .serializers import (
-    LodgeSerializer, LodgeAccommodationSerializer, LodgeActivitySerializer,
-    LodgeStaffSerializer, LodgeAmenitySerializer, LodgeReviewSerializer,
-    LodgeGallerySerializer, LodgeDashboardSerializer
+    LodgeSerializer, 
+    LodgeAccommodationSerializer, 
+    LodgeActivitySerializer,
 )
 from .permissions import (
-    IsLodgeAdmin, CanManageLodgeAccommodations, CanManageLodgeActivities,
-    IsLodgeStaff
+    IsLodgeAdmin, 
+    CanManageLodgeAccommodations, 
+    CanManageLodgeActivities
+)
+from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated
+from .models import Lodge, LodgeAccommodation, LodgeActivity
+from rest_framework import serializers
+from .serializers import (
+    LodgeSerializer, 
+    LodgeAccommodationSerializer,
+    LodgeActivitySerializer
 )
 
 class LodgeAuthViewSet(viewsets.ViewSet):
@@ -44,13 +56,17 @@ class LodgeAuthViewSet(viewsets.ViewSet):
 
 class LodgeViewSet(viewsets.ModelViewSet):
     serializer_class = LodgeSerializer
-    permission_classes = [IsLodgeAdmin]
+    permission_classes = [IsAuthenticated]  # Changed from IsLodgeAdmin to IsAuthenticated
+    
+    #permission_classes = [IsLodgeAdmin]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['type', 'city', 'is_active']
+    filterset_fields = ['type', 'address', 'is_active']
     search_fields = ['name', 'description', 'address']
     ordering_fields = ['created_at', 'name']
 
     def get_queryset(self):
+        if self.request.user.is_superuser:
+            return Lodge.objects.all()
         return Lodge.objects.filter(id=self.request.user.lodge_id)
 
     @action(detail=True, methods=['get'])
@@ -141,19 +157,25 @@ class LodgeViewSet(viewsets.ModelViewSet):
         })
 
     def calculate_occupancy_rate(self, lodge):
-        today = timezone.now().date()
-        total_rooms = lodge.accommodations.count()
-        occupied_rooms = lodge.bookings.filter(
-            check_in_date__lte=today,
-            check_out_date__gte=today,
-            status='confirmed'
-        ).count()
-        
-        return {
-            'current_occupancy': (occupied_rooms / total_rooms * 100) if total_rooms > 0 else 0,
-            'total_rooms': total_rooms,
-            'occupied_rooms': occupied_rooms
-        }
+        try:
+            today = timezone.now().date()
+            total_rooms = lodge.accommodations.aggregate(
+                total=Sum('lodgeaccommodation__quantity'))['total'] or 0
+            
+            occupied_rooms = lodge.bookings.filter(
+                check_in_date__lte=today,
+                check_out_date__gte=today,
+                status='confirmed'
+            ).count()
+            
+            return {
+                'current_occupancy': (occupied_rooms / total_rooms * 100) if total_rooms > 0 else 0,
+                'total_rooms': total_rooms,
+                'occupied_rooms': occupied_rooms
+            }
+        except Exception as e:
+            Logger.error(f"Error calculating occupancy rate: {str(e)}")
+            return {'error': 'Could not calculate occupancy rate'}
 
     def analyze_seasonal_trends(self, lodge):
         # Analyse des tendances saisonnières
@@ -188,40 +210,44 @@ class LodgeActivityViewSet(viewsets.ModelViewSet):
         return LodgeActivity.objects.filter(lodge__id=self.request.user.lodge_id)
 
     def perform_create(self, serializer):
-        serializer.save(lodge_id=self.request.user.lodge_id)
+        # Get lodge_id from request data
+        lodge_id = self.request.data.get('lodge')
+        
+        if not lodge_id:
+            raise serializers.ValidationError({"lodge": "Lodge ID is required"})
+            
+        serializer.save(lodge_id=lodge_id)
 
-class LodgeStaffViewSet(viewsets.ModelViewSet):
-    serializer_class = LodgeStaffSerializer
-    permission_classes = [IsLodgeAdmin]
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['role', 'is_active']
-
-    def get_queryset(self):
-        return LodgeStaff.objects.filter(lodge__id=self.request.user.lodge_id)
-
-class LodgeAmenityViewSet(viewsets.ModelViewSet):
-    serializer_class = LodgeAmenitySerializer
-    permission_classes = [IsLodgeStaff]
-    filter_backends = [DjangoFilterBackend]
-
-    def get_queryset(self):
-        return LodgeAmenity.objects.filter(lodge__id=self.request.user.lodge_id)
-
-class LodgeReviewViewSet(viewsets.ModelViewSet):
-    serializer_class = LodgeReviewSerializer
-    permission_classes = [IsLodgeStaff]
-    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
-    filterset_fields = ['rating']
-    ordering_fields = ['created_at', 'rating']
+class LodgeAccommodationViewSet(viewsets.ModelViewSet):
+    serializer_class = LodgeAccommodationSerializer
+    permission_classes = [IsAuthenticated]
+    #permission_classes = [CanManageLodgeAccommodations]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_fields = ['is_available', 'price']
+    search_fields = ['accommodation__name']
 
     def get_queryset(self):
-        return LodgeReview.objects.filter(lodge__id=self.request.user.lodge_id)
+        return LodgeAccommodation.objects.filter(
+            lodge__id=self.request.user.lodge_id
+        ).select_related('accommodation')
 
-class LodgeGalleryViewSet(viewsets.ModelViewSet):
-    serializer_class = LodgeGallerySerializer
-    permission_classes = [IsLodgeStaff]
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['is_main']
+    def perform_create(self, serializer):
+        # If you're getting the lodge from the URL or request context
+        lodge_id = self.kwargs.get('lodge_id') or self.request.data.get('lodge')
+        if not lodge_id:
+            raise serializers.ValidationError({"lodge": "Lodge ID is required"})
+        serializer.save(lodge_id=lodge_id)
 
-    def get_queryset(self):
-        return LodgeGallery.objects.filter(lodge__id=self.request.user.lodge_id)
+    @action(detail=True, methods=['post'])
+    def update_quantity(self, request, pk=None):
+        accommodation = self.get_object()
+        new_quantity = request.data.get('quantity')
+        
+        if new_quantity is not None:
+            accommodation.quantity = new_quantity
+            accommodation.save()
+            return Response({'status': 'quantity updated'})
+        return Response(
+            {'error': 'quantity is required'}, 
+            status=status.HTTP_400_BAD_REQUEST
+        )

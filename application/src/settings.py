@@ -23,11 +23,46 @@ SECRET_KEY = 'ma3c@7uu!%e0=tynp+i6+q%$)9v@$t(eulqurym_b=48z82&5n'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+# Security settings
+SECURE_SSL_REDIRECT = False  # Désactivé pour le développement
+SESSION_COOKIE_SECURE = False  # Désactivé pour le développement
+CSRF_COOKIE_SECURE = False  # Désactivé pour le développement
+SECURE_HSTS_SECONDS = 0  # Désactivé pour le développement
+SECURE_HSTS_INCLUDE_SUBDOMAINS = False  # Désactivé pour le développement
+SECURE_HSTS_PRELOAD = False  # Désactivé pour le développement
+
+# Protection contre les attaques XSS et autres
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
+SESSION_COOKIE_HTTPONLY = True
+
 ALLOWED_HOSTS = [
     'dfef-197-149-243-78.ngrok-free.app',
     '127.0.0.1',
     'localhost'
 ]
+
+# Celery Configuration
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+
+# Email Configuration
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'jeankelouaouamouno71@gmail.com'
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+
+# Application Settings
+SITE_URL = 'http://localhost:8000'
+COMPANY_NAME = 'SyllaTah'
+SUPPORT_EMAIL = 'support@syllatah.com'
+MAX_PDF_SIZE_BYTES = 5 * 1024 * 1024  # 5MB
 
 # Application definition
 
@@ -68,6 +103,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = (
     'corsheaders.middleware.CorsMiddleware',
     'src.middleware.APIMonitoringMiddleware',  # Middleware de monitoring
+    'core.middleware.APIExceptionMiddleware',  # Middleware de gestion des exceptions API
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -115,6 +151,68 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
+
+# Configuration du système de logging
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+        'json': {
+            'format': '{{"time": "{asctime}", "level": "{levelname}", "message": "{message}", "module": "{module}"}}',
+            'style': '{',
+        },
+    },
+    'filters': {
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'filters': ['require_debug_true'],
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs/django.log'),
+            'formatter': 'verbose',
+        },
+        'api_file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs/api_monitoring.log'),
+            'formatter': 'json',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'api_monitoring': {
+            'handlers': ['console', 'api_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'reservations': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    },
+}
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 # TEMPLATE_DIRS = [os.path.join(BASE_DIR, 'templates')]
 
@@ -166,6 +264,17 @@ ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'http'  # Changez 'http' en 'https' si vous util
 SITE_ID = 1
 
 REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'src.pagination.CustomPagination',
+    'PAGE_SIZE': 10,
+    'DEFAULT_THROTTLE_CLASSES': [
+        'src.rate_limiting.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'login': '5/min',
+        'register': '3/hour',
+        'user': '100/hour',
+    },
+    'EXCEPTION_HANDLER': 'src.error_handling.custom_exception_handler',
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',  # Permettre l'accès à tous pendant la phase de test
     ],
@@ -231,7 +340,13 @@ ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_LOGIN_METHOD = {'email'}
 ACCOUNT_EMAIL_VERIFICATION = 'optional'
-ACCOUNT_RATE_LIMITS = ['login_failed']
+ACCOUNT_RATE_LIMITS = {
+    # Change these values according to your needs
+    "login_failed": "5/m",  # 5 attempts per minute
+    "signup": "5/m",        # 5 attempts per minute
+    "contact_email": "3/h",  # 3 attempts per hour
+    "resend_email": "3/h",  # 3 attempts per hour
+}
 ACCOUNT_LOGOUT_ON_PASSWORD_CHANGE = False
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
@@ -523,3 +638,7 @@ if not os.path.exists(os.path.join(BASE_DIR, 'logs')):
 STRIPE_PUBLIC_KEY = 'votre_clé_publique'
 STRIPE_SECRET_KEY = 'votre_clé_secrète'
 STRIPE_WEBHOOK_SECRET = 'votre_clé_webhook'
+
+# Test settings
+TEST_RUNNER = 'django.test.runner.DiscoverRunner'
+#ROOT_URLCONF = 'tests.urls'  # Pour les tests uniquement

@@ -1,16 +1,14 @@
 from django.db import models
+import uuid
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.contrib.auth import get_user_model
 
-User = get_user_model()
-class Region(models.Model):
-    name = models.CharField(max_length=100)
-    description = models.TextField()
-    image = models.ImageField(upload_to='regions/', null=True, blank=True)
+from regions.models import Region
 
-    def __str__(self):
-        return self.name
+User = get_user_model()
+
 class PlaceCategory(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     icon = models.ImageField(upload_to='places/categories/', null=True, blank=True)
@@ -38,6 +36,7 @@ class TouristPlace(models.Model):
         'sunday': '10:00 AM - 4:00 PM'
     }  """
 
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=200)
     description = models.TextField()
     region = models.ForeignKey(Region, on_delete=models.CASCADE)
@@ -69,6 +68,7 @@ class TouristPlace(models.Model):
         self.save()
 
 class PlaceReview(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     place = models.ForeignKey(TouristPlace, on_delete=models.CASCADE, related_name='reviews')
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     rating = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])

@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
-
+import uuid
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from decimal import Decimal
@@ -21,7 +21,7 @@ class Reservation(models.Model):
         ('paid', 'Payé'),
         ('refunded', 'Remboursé')
     ]
-
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     reservation_number = models.CharField(max_length=20, unique=True, null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
@@ -67,6 +67,18 @@ class Reservation(models.Model):
         super().save(*args, **kwargs)
 
     def clean(self):
+        super().clean()
+        
+        # Check for overlapping reservations
+        overlapping = Reservation.objects.filter(
+            accommodation=self.accommodation,
+            check_in_date__lt=self.check_out_date,
+            check_out_date__gt=self.check_in_date
+        ).exclude(id=self.id)
+        
+        if overlapping.exists():
+            raise ValidationError("Cette période est déjà réservée pour cet hébergement.")
+        
         if self.check_out_date <= self.check_in_date:
             raise ValidationError("La date de départ doit être postérieure à la date d'arrivée")
         
@@ -145,6 +157,7 @@ class Payment(models.Model):
         ('refunded', 'Remboursé')
     ]
 
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     reservation = models.ForeignKey(Reservation, on_delete=models.CASCADE, related_name='payments')
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     payment_type = models.CharField(max_length=20, choices=PAYMENT_TYPES)
@@ -156,6 +169,7 @@ class Payment(models.Model):
         return f"Payment {self.transaction_id} for {self.reservation}"
 
 class UserWallet(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     last_updated = models.DateTimeField(auto_now=True)
@@ -184,6 +198,7 @@ class UserWallet(models.Model):
         )
 
 class WalletTransaction(models.Model):
+    
     TRANSACTION_TYPES = [
         ('deposit', 'Dépôt'),
         ('withdrawal', 'Retrait'),
@@ -191,6 +206,7 @@ class WalletTransaction(models.Model):
         ('refund', 'Remboursement')
     ]
 
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     wallet = models.ForeignKey(UserWallet, on_delete=models.CASCADE, related_name='transactions')
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     transaction_type = models.CharField(max_length=20, choices=TRANSACTION_TYPES)
@@ -210,6 +226,7 @@ class EmailLog(models.Model):
         ('modification', 'Modification de réservation')
     ]
 
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     reservation = models.ForeignKey(Reservation, on_delete=models.CASCADE, related_name='email_logs')
     email_type = models.CharField(max_length=20, choices=EMAIL_TYPES)
     recipient = models.EmailField()

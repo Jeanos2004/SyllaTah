@@ -1,9 +1,11 @@
 from django.db import models
+import uuid
 from django.contrib.auth import get_user_model
 from django.utils.text import slugify
 
 User = get_user_model()
 class BlogCategory(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
     slug = models.SlugField(unique=True)
     description = models.TextField(blank=True)
@@ -20,6 +22,7 @@ class BlogCategory(models.Model):
         return self.name
 
 class BlogTag(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=50)
     slug = models.SlugField(unique=True)
 
@@ -37,6 +40,7 @@ class BlogPost(models.Model):
         ('published', 'Publié')
     ]
 
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=200)
     slug = models.SlugField(unique=True, max_length=200)
     content = models.TextField()

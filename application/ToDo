@@ -1,8 +1,49 @@
-#1 Je dois programmer la duree avant netoyage de mon fichier de monitoring app_monitoring(Hebdomairement probablement)
-
-#4 Gestion de la Reservation .. y effectuer quelques reglages en integrant la fonctionnalite de Payment avec Stripe
-   # Quand je modifie le statue de payment d'une reservation ..les modifications ne prennent pas effet
-   # Integrer la fonctionnalite de payment avec Stripe
-   # Pour cela faudra voir si la fonctionnalite ou un mail est envoye a chaque reservation pour confirmer sa reservation fonctionne bel et bien
-   ## parce que j'ai l'impression que pas vraiment 
-
+# Taches a faire 
+1. Réservations (reservations)
+- Implémentation d'un système de cache pour les disponibilités
+- Ajout d'un système de notifications en temps réel (WebSockets)
+- Mise en place d'un système de remboursement automatique
+- Amélioration de la gestion des conflits de réservation
+- Ajout de tests de performance et de charge
+2. Authentification (custom_auth)
+- Implémentation de l'authentification à deux facteurs (2FA)
+- Ajout de la connexion via réseaux sociaux
+- Amélioration du système de gestion des sessions
+- Renforcement de la sécurité avec rate limiting plus sophistiqué
+- Ajout d'un système de récupération de mot de passe plus robuste
+3. Hébergements (accommodations)
+- Implémentation d'un système de recherche avancée (Elasticsearch)
+- Ajout d'un système de recommandations personnalisées
+- Gestion des photos avec redimensionnement automatique
+- Système de notation et d'avis plus élaboré
+- Gestion des promotions et tarifs saisonniers
+4. Paiements
+- Intégration complète de Stripe avec gestion des webhooks
+- Système de paiement échelonné
+- Gestion des devises multiples
+- Système de factures automatisé
+- Gestion des remboursements et litiges
+5. Monitoring et Performance
+- Mise en place de Sentry pour le suivi des erreurs
+- Implémentation de New Relic ou Datadog
+- Optimisation des requêtes SQL
+- Mise en cache avec Redis
+- Logging amélioré
+6. Infrastructure
+- Configuration de Celery pour les tâches asynchrones
+- Mise en place de Docker pour le développement
+- Configuration de CI/CD
+- Backup automatisé des données
+- Monitoring des performances
+7. Frontend (react-spa)
+- Implémentation du SSR (Server-Side Rendering)
+- Optimisation des performances avec React.lazy
+- Mise en place de tests E2E avec Cypress
+- Gestion d'état avec Redux Toolkit
+- PWA (Progressive Web App) capabilities
+8. API
+- Documentation automatique avec Swagger/OpenAPI
+- Versioning de l'API
+- Rate limiting plus sophistiqué
+- Pagination optimisée
+- Gestion des erreurs plus détaillée 

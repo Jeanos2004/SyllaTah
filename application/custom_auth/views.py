@@ -13,7 +13,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .serializers import LoginResponseSerializer, LoginSerializer, UserSessionSerializer
+from .serializers import LoginResponseSerializer, UserSessionSerializer
+from .lodge_auth import LodgeLoginSerializer
 
 from .app_settings import api_settings
 from .models import get_token_model
@@ -29,17 +30,11 @@ sensitive_post_parameters_m = method_decorator(
 
 class LoginView(GenericAPIView):
     """
-    Check the credentials and return the REST Token
-    if the credentials are valid and authenticated.
-    Calls Django Auth login method to register User ID
-    in Django session framework
-
-    Accept the following POST parameters: username, password
-    Return the REST Framework Token Object's key.
+    Vue d'authentification personnalisée avec support des lodges.
+    Accepte username/email + password, et optionnellement lodge_id.
     """
     permission_classes = (AllowAny,)
-    #serializer_class = api_settings.LOGIN_SERIALIZER
-    serializer_class = LoginSerializer
+    serializer_class = LodgeLoginSerializer
     throttle_scope = 'dj_rest_auth'
 
     user = None

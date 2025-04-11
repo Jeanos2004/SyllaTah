@@ -1,11 +1,15 @@
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
+from django.conf import settings
+from celery import shared_task
 from .models import Reservation, EmailLog
 
+@shared_task
 def send_reservation_email(reservation_id, email_type):
     try:
         reservation = Reservation.objects.get(id=reservation_id)
+        service = reservation.accommodation.name if reservation.accommodation else "Non spécifié"
         
         templates = {
             'confirmation': 'emails/reservation_confirmation.html',
@@ -24,9 +28,9 @@ def send_reservation_email(reservation_id, email_type):
         context = {
             'reservation': reservation,
             'user': reservation.user,
-            'service': reservation.service_type,
+            'service': service,  # Using accommodation name instead of service_type
             'total_price': reservation.total_price,
-            'site_url': 'http://localhost:3000'
+            'site_url': settings.SITE_URL if hasattr(settings, 'SITE_URL') else 'http://localhost:3000'
         }
 
         html_content = render_to_string(templates[email_type], context)

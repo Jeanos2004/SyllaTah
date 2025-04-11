@@ -1,49 +1,56 @@
-from django.db import models
+from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator
 import uuid
-from django.contrib.auth.models import User, AbstractUser
+from django.db import models
 from accommodations.models import Accommodation
 from activities.models import Activity
 
-class LodgeAdmin(AbstractUser):
-    lodge_id = models.UUIDField(unique=True, null=True)
-    is_lodge_admin = models.BooleanField(default=False)
-    phone_number = models.CharField(max_length=20, blank=True)
-    position = models.CharField(max_length=100, blank=True)
-
-    # Ajout des related_name pour résoudre les conflits
-    groups = models.ManyToManyField(
-        'auth.Group',
-        related_name='lodge_admin_set',
-        blank=True,
-        help_text='The groups this user belongs to.',
-        verbose_name='groups',
-    )
-    user_permissions = models.ManyToManyField(
-        'auth.Permission',
-        related_name='lodge_admin_set',
-        blank=True,
-        help_text='Specific permissions for this user.',
-        verbose_name='user permissions',
-    )
-
 class Lodge(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=200)
-    email = models.EmailField(unique=True)
-    phone = models.CharField(max_length=20)
-    address = models.TextField()
-    description = models.TextField()
-    is_active = models.BooleanField(default=True)
+    name = models.CharField(max_length=200, null=False, blank=False)
+    email = models.EmailField(unique=True, null=False, blank=False)
+    phone = models.CharField(
+        max_length=20,
+        validators=[
+            RegexValidator(
+                regex=r'^\+?1?\d{9,15}$',
+                message="Phone number must be entered in the format: '+999999999'. Up to 15 digits allowed."
+            )
+        ],
+        null=True,
+        blank=True
+    )
+    address = models.TextField(null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
+    is_active = models.BooleanField(default=True, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    type = models.CharField(max_length=50, choices=[
+        ('hotel', 'Hotel'),
+        ('resort', 'Resort'),
+        ('guesthouse', 'Guest House'),
+    ], default='hotel')
     
     # Relations
     accommodations = models.ManyToManyField(Accommodation, through='LodgeAccommodation')
     activities = models.ManyToManyField(Activity, through='LodgeActivity')
 
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(is_active=True) | models.Q(is_active=False),
+                name='valid_lodge_status'
+            )
+        ]
+
+    def clean(self):
+        if not self.email or not self.phone:
+            raise ValidationError("Email and phone are required")
+
     def __str__(self):
         return self.name
 
 class LodgeAccommodation(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     lodge = models.ForeignKey(Lodge, on_delete=models.CASCADE)
     accommodation = models.ForeignKey(Accommodation, on_delete=models.CASCADE)
     is_available = models.BooleanField(default=True)
@@ -51,6 +58,7 @@ class LodgeAccommodation(models.Model):
     quantity = models.PositiveIntegerField(default=1)
 
 class LodgeActivity(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     lodge = models.ForeignKey(Lodge, on_delete=models.CASCADE)
     activity = models.ForeignKey(Activity, on_delete=models.CASCADE)
     is_available = models.BooleanField(default=True)

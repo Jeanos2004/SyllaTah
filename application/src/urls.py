@@ -50,5 +50,6 @@ urlpatterns = [
     re_path(r'^api/transports/', include('transports.urls')),
     re_path(r'^api/activities/', include('activities.urls')),
     re_path(r'^api/blog/', include('blog.urls')),
-    re_path(r'api/reservations/', include('reservations.urls')),
+    re_path(r'^api/reservations/', include('reservations.urls')),
+    re_path(r'^api/lodge/', include('lodge.urls')),
 ]

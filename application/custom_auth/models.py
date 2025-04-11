@@ -9,6 +9,7 @@ from .app_settings import api_settings
 
 
 class CustomUser(AbstractUser):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     lodge_id = models.UUIDField(unique=True, null=True, blank=True)
     is_lodge_admin = models.BooleanField(default=False)
     phone_number = models.CharField(max_length=20, blank=True)

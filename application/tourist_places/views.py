@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from django.db.models import Q
-from .models import TouristPlace, Region, PlaceReview
+from .models import TouristPlace, PlaceReview
 from .serializers import TouristPlaceSerializer, RegionSerializer, PlaceReviewSerializer
 
 class TouristPlaceViewSet(viewsets.ModelViewSet):
@@ -36,16 +36,4 @@ class TouristPlaceViewSet(viewsets.ModelViewSet):
     def featured(self, request):
         featured_places = self.get_queryset().order_by('-rating')[:5]
         serializer = self.get_serializer(featured_places, many=True)
-        return Response(serializer.data)
-
-class RegionViewSet(viewsets.ModelViewSet):
-    queryset = Region.objects.all()
-    serializer_class = RegionSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
-
-    @action(detail=True)
-    def places(self, request, pk=None):
-        region = self.get_object()
-        places = TouristPlace.objects.filter(region=region)
-        serializer = TouristPlaceSerializer(places, many=True)
         return Response(serializer.data)

@@ -18,6 +18,7 @@ class RoomType(admin.ModelAdmin):
 
 @admin.register(Accommodation)
 class AccommodationAdmin(admin.ModelAdmin):
-    list_display = ['pk','name', 'description', 'location', 'amenities', 'category', 'room_types', 'price_per_night']
+    list_display = ['pk', 'name', 'description', 'location', 'amenities', 'category', 'price_per_night']
+    filter_horizontal = ['room_types']
 
 # Register your models here.

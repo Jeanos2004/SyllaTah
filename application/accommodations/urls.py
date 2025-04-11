@@ -3,9 +3,9 @@ from rest_framework.routers import DefaultRouter
 from .views import AccommodationViewSet, CategoryAccommodationViewSet, RoomTypeViewSets
 
 router = DefaultRouter()
-router.register(r'accommodation', AccommodationViewSet)
-router.register(r'type', CategoryAccommodationViewSet)
-router.register(r'roomtype', RoomTypeViewSets)
+router.register(r'', AccommodationViewSet, basename='accommodation')
+router.register(r'categories', CategoryAccommodationViewSet, basename='accommodation-category')
+router.register(r'room-types', RoomTypeViewSets, basename='room-type')
 
 urlpatterns = [
     path('', include(router.urls)),

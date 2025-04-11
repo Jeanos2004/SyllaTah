@@ -51,12 +51,25 @@ class EmailService:
     @staticmethod
     def send_confirmation(instance, pdf_buffer):
         try:
+            # Ajout du template HTML
+            template = get_template('email/reservation_confirmation.html')
+            context = {
+                'reservation': instance,
+                'user_name': instance.user.get_full_name() or instance.user.first_name,
+                'service_type': instance.service_type,
+                'check_in_date': instance.check_in_date,
+                'check_out_date': instance.check_out_date,
+                'total_price': instance.total_price,
+            }
+            html_content = template.render(context)
+            
             email = EmailMessage(
                 subject=f'SyllaTah - Confirmation de réservation #{instance.id}',
-                body=EmailService._get_email_body(instance),
+                body=html_content,
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 to=[instance.user.email],
             )
+            email.content_subtype = "html"  # Pour envoyer en HTML
             
             if pdf_buffer:
                 email.attach(
@@ -83,29 +96,6 @@ class EmailService:
                 error_message=str(e)
             )
             return False
-
-    @staticmethod
-    def _get_email_body(instance):
-        return f"""
-        Bonjour {instance.user.first_name},
-
-        Nous vous remercions d'avoir choisi SyllaTah pour votre réservation.
-
-        Détails de votre réservation :
-        - Numéro : {instance.id}
-        - Type de service : {instance.service_type}
-        - Date d'arrivée : {instance.check_in_date}
-        - Date de départ : {instance.check_out_date}
-        - Date de réservation : {instance.reservation_date}
-        - Montant total : {instance.total_price} €
-
-        Vous trouverez ci-joint votre reçu de réservation.
-
-        Pour visualiser ou télécharger votre reçu ultérieurement, connectez-vous à votre compte SyllaTah.
-
-        Cordialement,
-        L'équipe SyllaTah
-        """
 
 @receiver(post_save, sender=Reservation)
 def reservation_confirmation(sender, instance, created, **kwargs):
