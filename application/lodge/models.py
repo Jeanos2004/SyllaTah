@@ -30,9 +30,17 @@ class Lodge(models.Model):
         ('guesthouse', 'Guest House'),
     ], default='hotel')
     
-    # Relations
-    accommodations = models.ManyToManyField(Accommodation, through='LodgeAccommodation')
-    activities = models.ManyToManyField(Activity, through='LodgeActivity')
+    # Relations avec related_name explicite pour éviter les problèmes avec drf-spectacular
+    accommodations = models.ManyToManyField(
+        Accommodation, 
+        through='LodgeAccommodation',
+        related_name='lodges'
+    )
+    activities = models.ManyToManyField(
+        Activity, 
+        through='LodgeActivity',
+        related_name='lodges'
+    )
 
     class Meta:
         constraints = [
@@ -51,16 +59,16 @@ class Lodge(models.Model):
 
 class LodgeAccommodation(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    lodge = models.ForeignKey(Lodge, on_delete=models.CASCADE)
-    accommodation = models.ForeignKey(Accommodation, on_delete=models.CASCADE)
+    lodge = models.ForeignKey(Lodge, on_delete=models.CASCADE, related_name='lodge_accommodations')
+    accommodation = models.ForeignKey(Accommodation, on_delete=models.CASCADE, related_name='lodge_accommodations')
     is_available = models.BooleanField(default=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     quantity = models.PositiveIntegerField(default=1)
 
 class LodgeActivity(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    lodge = models.ForeignKey(Lodge, on_delete=models.CASCADE)
-    activity = models.ForeignKey(Activity, on_delete=models.CASCADE)
+    lodge = models.ForeignKey(Lodge, on_delete=models.CASCADE, related_name='lodge_activities')
+    activity = models.ForeignKey(Activity, on_delete=models.CASCADE, related_name='lodge_activities')
     is_available = models.BooleanField(default=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     schedule = models.JSONField(default=dict)

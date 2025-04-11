@@ -1,0 +1,3308 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "SyllaTah API",
+    "version": "1.0.0",
+    "description": "API complète pour la gestion des réservations, hébergements, transports et activités touristiques"
+  },
+  "tags": [
+    {
+      "name": "Authentication",
+      "description": "Endpoints pour l'authentification des utilisateurs"
+    },
+    {
+      "name": "Regions",
+      "description": "Gestion des régions touristiques"
+    },
+    {
+      "name": "Tourist Places",
+      "description": "Gestion des lieux touristiques"
+    },
+    {
+      "name": "Accommodations",
+      "description": "Gestion des hébergements"
+    },
+    {
+      "name": "Activities",
+      "description": "Gestion des activités touristiques"
+    },
+    {
+      "name": "Transports",
+      "description": "Gestion des transports"
+    },
+    {
+      "name": "Reservations",
+      "description": "Gestion des réservations"
+    },
+    {
+      "name": "Lodge",
+      "description": "Gestion des établissements d'hébergement"
+    },
+    {
+      "name": "Blog",
+      "description": "Gestion du blog"
+    }
+  ],
+  "paths": {
+    "/api/regions/": {
+      "get": {
+        "operationId": "regions_list",
+        "description": "Liste de toutes les régions touristiques",
+        "tags": ["Regions"],
+        "responses": {
+          "200": {
+            "description": "Liste des régions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Region"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "regions_create",
+        "description": "Création d'une nouvelle région",
+        "tags": ["Regions"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Region"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Région créée avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Region"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Données invalides"
+          },
+          "401": {
+            "description": "Authentification requise"
+          }
+        }
+      }
+    },
+    "/api/regions/{id}/": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "Identifiant UUID de la région",
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "regions_retrieve",
+        "description": "Détails d'une région spécifique",
+        "tags": ["Regions"],
+        "responses": {
+          "200": {
+            "description": "Détails de la région",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Region"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Région non trouvée"
+          }
+        }
+      },
+      "put": {
+        "operationId": "regions_update",
+        "description": "Mise à jour complète d'une région",
+        "tags": ["Regions"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Region"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Région mise à jour avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Region"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Données invalides"
+          },
+          "401": {
+            "description": "Authentification requise"
+          },
+          "404": {
+            "description": "Région non trouvée"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "regions_partial_update",
+        "description": "Mise à jour partielle d'une région",
+        "tags": ["Regions"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Region"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Région mise à jour avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Region"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Données invalides"
+          },
+          "401": {
+            "description": "Authentification requise"
+          },
+          "404": {
+            "description": "Région non trouvée"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "regions_destroy",
+        "description": "Suppression d'une région",
+        "tags": ["Regions"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Région supprimée avec succès"
+          },
+          "401": {
+            "description": "Authentification requise"
+          },
+          "404": {
+            "description": "Région non trouvée"
+          }
+        }
+      }
+    },
+    "/api/tourist-places/": {
+      "get": {
+        "operationId": "tourist_places_list",
+        "description": "Liste de tous les lieux touristiques",
+        "tags": ["Tourist Places"],
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "description": "Recherche par nom, description, région ou type",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ordering",
+            "in": "query",
+            "description": "Tri par rating, created_at ou entrance_fee",
+            "schema": {
+              "type": "string",
+              "enum": ["rating", "-rating", "created_at", "-created_at", "entrance_fee", "-entrance_fee"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des lieux touristiques",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TouristPlace"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "tourist_places_create",
+        "description": "Création d'un nouveau lieu touristique",
+        "tags": ["Tourist Places"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TouristPlace"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Lieu touristique créé avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TouristPlace"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Données invalides"
+          },
+          "401": {
+            "description": "Authentification requise"
+          }
+        }
+      }
+    },
+    "/api/tourist-places/{id}/": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "Identifiant UUID du lieu touristique",
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "tourist_places_retrieve",
+        "description": "Détails d'un lieu touristique spécifique",
+        "tags": ["Tourist Places"],
+        "responses": {
+          "200": {
+            "description": "Détails du lieu touristique",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TouristPlace"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Lieu touristique non trouvé"
+          }
+        }
+      },
+      "put": {
+        "operationId": "tourist_places_update",
+        "description": "Mise à jour complète d'un lieu touristique",
+        "tags": ["Tourist Places"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TouristPlace"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Lieu touristique mis à jour avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TouristPlace"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Données invalides"
+          },
+          "401": {
+            "description": "Authentification requise"
+          },
+          "404": {
+            "description": "Lieu touristique non trouvé"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "tourist_places_partial_update",
+        "description": "Mise à jour partielle d'un lieu touristique",
+        "tags": ["Tourist Places"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TouristPlace"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Lieu touristique mis à jour avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TouristPlace"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Données invalides"
+          },
+          "401": {
+            "description": "Authentification requise"
+          },
+          "404": {
+            "description": "Lieu touristique non trouvé"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "tourist_places_destroy",
+        "description": "Suppression d'un lieu touristique",
+        "tags": ["Tourist Places"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Lieu touristique supprimé avec succès"
+          },
+          "401": {
+            "description": "Authentification requise"
+          },
+          "404": {
+            "description": "Lieu touristique non trouvé"
+          }
+        }
+      }
+    },
+    "/api/tourist-places/{id}/add_review/": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "Identifiant UUID du lieu touristique",
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "post": {
+        "operationId": "tourist_places_add_review",
+        "description": "Ajouter un avis sur un lieu touristique",
+        "tags": ["Tourist Places"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "rating": {
+                    "type": "number",
+                    "format": "float",
+                    "minimum": 0,
+                    "maximum": 5
+                  },
+                  "comment": {
+                    "type": "string"
+                  }
+                },
+                "required": ["rating"]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Avis ajouté avec succès"
+          },
+          "400": {
+            "description": "Données invalides"
+          },
+          "401": {
+            "description": "Authentification requise"
+          },
+          "404": {
+            "description": "Lieu touristique non trouvé"
+          }
+        }
+      }
+    },
+    "/api/tourist-places/{id}/nearby_places/": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "Identifiant UUID du lieu touristique",
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "tourist_places_nearby_places",
+        "description": "Obtenir les lieux touristiques à proximité",
+        "tags": ["Tourist Places"],
+        "responses": {
+          "200": {
+            "description": "Liste des lieux touristiques à proximité",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TouristPlace"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Lieu touristique non trouvé"
+          }
+        }
+      }
+    },
+    "/api/tourist-places/featured/": {
+      "get": {
+        "operationId": "tourist_places_featured",
+        "description": "Obtenir les lieux touristiques mis en avant",
+        "tags": ["Tourist Places"],
+        "responses": {
+          "200": {
+            "description": "Liste des lieux touristiques mis en avant",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TouristPlace"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/accommodations/": {
+      "get": {
+        "operationId": "accommodations_list",
+        "description": "Liste de tous les hébergements disponibles",
+        "tags": ["Accommodations"],
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "description": "Filtrer par type d'hébergement",
+            "schema": {
+              "type": "string",
+              "enum": ["hotel", "apartment", "villa", "resort", "guesthouse"]
+            }
+          },
+          {
+            "name": "min_price",
+            "in": "query",
+            "description": "Prix minimum",
+            "schema": {
+              "type": "number",
+              "format": "float"
+            }
+          },
+          {
+            "name": "max_price",
+            "in": "query",
+            "description": "Prix maximum",
+            "schema": {
+              "type": "number",
+              "format": "float"
+            }
+          },
+          {
+            "name": "min_capacity",
+            "in": "query",
+            "description": "Capacité minimale",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des hébergements",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Accommodation"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "accommodations_create",
+        "description": "Création d'un nouvel hébergement",
+        "tags": ["Accommodations"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Accommodation"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Hébergement créé avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Accommodation"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Données invalides"
+          },
+          "401": {
+            "description": "Authentification requise"
+          }
+        }
+      }
+    },
+    "/api/activities/": {
+      "get": {
+        "operationId": "activities_list",
+        "description": "Liste de toutes les activités touristiques disponibles",
+        "tags": ["Activities"],
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "description": "Filtrer par type d'activité",
+            "schema": {
+              "type": "string",
+              "enum": ["adventure", "cultural", "relaxation", "sightseeing"]
+            }
+          },
+          {
+            "name": "min_price",
+            "in": "query",
+            "description": "Prix minimum",
+            "schema": {
+              "type": "number",
+              "format": "float"
+            }
+          },
+          {
+            "name": "max_price",
+            "in": "query",
+            "description": "Prix maximum",
+            "schema": {
+              "type": "number",
+              "format": "float"
+            }
+          },
+          {
+            "name": "max_duration",
+            "in": "query",
+            "description": "Durée maximale en minutes",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des activités",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Activity"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "activities_create",
+        "description": "Création d'une nouvelle activité",
+        "tags": ["Activities"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Activity"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Activité créée avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Activity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Données invalides"
+          },
+          "401": {
+            "description": "Authentification requise"
+          }
+        }
+      }
+    },
+    "/api/activities/{id}/": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "Identifiant UUID de l'activité",
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "activities_retrieve",
+        "description": "Détails d'une activité spécifique",
+        "tags": ["Activities"],
+        "responses": {
+          "200": {
+            "description": "Détails de l'activité",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Activity"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Activité non trouvée"
+          }
+        }
+      },
+      "put": {
+        "operationId": "activities_update",
+        "description": "Mise à jour complète d'une activité",
+        "tags": ["Activities"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Activity"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Activité mise à jour avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Activity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Données invalides"
+          },
+          "401": {
+            "description": "Authentification requise"
+          },
+          "404": {
+            "description": "Activité non trouvée"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "activities_partial_update",
+        "description": "Mise à jour partielle d'une activité",
+        "tags": ["Activities"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Activity"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Activité mise à jour avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Activity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Données invalides"
+          },
+          "401": {
+            "description": "Authentification requise"
+          },
+          "404": {
+            "description": "Activité non trouvée"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "activities_destroy",
+        "description": "Suppression d'une activité",
+        "tags": ["Activities"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Activité supprimée avec succès"
+          },
+          "401": {
+            "description": "Authentification requise"
+          },
+          "404": {
+            "description": "Activité non trouvée"
+          }
+        }
+      }
+    },
+    "/api/accommodations/{id}/": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "Identifiant UUID de l'hébergement",
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "accommodations_retrieve",
+        "description": "Détails d'un hébergement spécifique",
+        "tags": ["Accommodations"],
+        "responses": {
+          "200": {
+            "description": "Détails de l'hébergement",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Accommodation"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Hébergement non trouvé"
+          }
+        }
+      },
+      "put": {
+        "operationId": "accommodations_update",
+        "description": "Mise à jour complète d'un hébergement",
+        "tags": ["Accommodations"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Accommodation"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Hébergement mis à jour avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Accommodation"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Données invalides"
+          },
+          "401": {
+            "description": "Authentification requise"
+          },
+          "404": {
+            "description": "Hébergement non trouvé"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "accommodations_partial_update",
+        "description": "Mise à jour partielle d'un hébergement",
+        "tags": ["Accommodations"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Accommodation"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Hébergement mis à jour avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Accommodation"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Données invalides"
+          },
+          "401": {
+            "description": "Authentification requise"
+          },
+          "404": {
+            "description": "Hébergement non trouvé"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "accommodations_destroy",
+        "description": "Suppression d'un hébergement",
+        "tags": ["Accommodations"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Hébergement supprimé avec succès"
+          },
+          "401": {
+            "description": "Authentification requise"
+          },
+          "404": {
+            "description": "Hébergement non trouvé"
+          }
+        }
+      }
+    },
+    "/api/transports/": {
+      "get": {
+        "operationId": "transports_list",
+        "description": "Liste de tous les transports disponibles",
+        "tags": ["Transports"],
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "description": "Filtrer par type de transport",
+            "schema": {
+              "type": "string",
+              "enum": ["car", "bus", "boat", "bicycle"]
+            }
+          },
+          {
+            "name": "min_price",
+            "in": "query",
+            "description": "Prix minimum",
+            "schema": {
+              "type": "number",
+              "format": "float"
+            }
+          },
+          {
+            "name": "max_price",
+            "in": "query",
+            "description": "Prix maximum",
+            "schema": {
+              "type": "number",
+              "format": "float"
+            }
+          },
+          {
+            "name": "min_capacity",
+            "in": "query",
+            "description": "Capacité minimale",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des transports",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Transport"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "transports_create",
+        "description": "Création d'un nouveau transport",
+        "tags": ["Transports"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Transport"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Transport créé avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Transport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Données invalides"
+          },
+          "401": {
+            "description": "Authentification requise"
+          }
+        }
+      }
+    },
+    "/api/transports/{id}/": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "Identifiant UUID du transport",
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "transports_retrieve",
+        "description": "Détails d'un transport spécifique",
+        "tags": ["Transports"],
+        "responses": {
+          "200": {
+            "description": "Détails du transport",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Transport"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Transport non trouvé"
+          }
+        }
+      },
+      "put": {
+        "operationId": "transports_update",
+        "description": "Mise à jour complète d'un transport",
+        "tags": ["Transports"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Transport"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Transport mis à jour avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Transport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Données invalides"
+          },
+          "401": {
+            "description": "Authentification requise"
+          },
+          "404": {
+            "description": "Transport non trouvé"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "transports_partial_update",
+        "description": "Mise à jour partielle d'un transport",
+        "tags": ["Transports"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Transport"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Transport mis à jour avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Transport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Données invalides"
+          },
+          "401": {
+            "description": "Authentification requise"
+          },
+          "404": {
+            "description": "Transport non trouvé"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "transports_destroy",
+        "description": "Suppression d'un transport",
+        "tags": ["Transports"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Transport supprimé avec succès"
+          },
+          "401": {
+            "description": "Authentification requise"
+          },
+          "404": {
+            "description": "Transport non trouvé"
+          }
+        }
+      }
+    },
+    "/api/lodge/": {
+      "get": {
+        "operationId": "lodge_list",
+        "description": "Liste de tous les établissements d'hébergement",
+        "tags": ["Lodge"],
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "description": "Filtrer par type d'établissement",
+            "schema": {
+              "type": "string",
+              "enum": ["hotel", "resort", "villa", "apartment", "guesthouse"]
+            }
+          },
+          {
+            "name": "is_active",
+            "in": "query",
+            "description": "Filtrer par statut d'activité",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des établissements",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Lodge"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "lodge_create",
+        "description": "Création d'un nouvel établissement",
+        "tags": ["Lodge"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Lodge"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Établissement créé avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Lodge"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Données invalides"
+          },
+          "401": {
+            "description": "Authentification requise"
+          }
+        }
+      }
+    },
+    "/api/blog/posts/": {
+      "get": {
+        "operationId": "blog_posts_list",
+        "description": "Liste de tous les articles du blog",
+        "tags": ["Blog"],
+        "parameters": [
+          {
+            "name": "category",
+            "in": "query",
+            "description": "Filtrer par catégorie",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "author",
+            "in": "query",
+            "description": "Filtrer par auteur",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "description": "Recherche dans le titre et le contenu",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des articles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "integer"
+                    },
+                    "next": {
+                      "type": "string",
+                      "format": "uri",
+                      "nullable": true
+                    },
+                    "previous": {
+                      "type": "string",
+                      "format": "uri",
+                      "nullable": true
+                    },
+                    "results": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "title": {
+                            "type": "string"
+                          },
+                          "slug": {
+                            "type": "string"
+                          },
+                          "excerpt": {
+                            "type": "string"
+                          },
+                          "author": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid"
+                              },
+                              "name": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "published_at": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "featured_image": {
+                            "type": "string",
+                            "format": "uri",
+                            "nullable": true
+                          },
+                          "categories": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "blog_posts_create",
+        "description": "Création d'un nouvel article de blog",
+        "tags": ["Blog"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  },
+                  "content": {
+                    "type": "string"
+                  },
+                  "excerpt": {
+                    "type": "string"
+                  },
+                  "featured_image": {
+                    "type": "string",
+                    "format": "uri",
+                    "nullable": true
+                  },
+                  "categories": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": ["draft", "published"]
+                  }
+                },
+                "required": ["title", "content"]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Article créé avec succès"
+          },
+          "400": {
+            "description": "Données invalides"
+          },
+          "401": {
+            "description": "Authentification requise"
+          }
+        }
+      }
+    },
+    "/api/blog/posts/{slug}/": {
+      "parameters": [
+        {
+          "name": "slug",
+          "in": "path",
+          "required": true,
+          "description": "Slug de l'article",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "blog_posts_retrieve",
+        "description": "Détails d'un article spécifique",
+        "tags": ["Blog"],
+        "responses": {
+          "200": {
+            "description": "Détails de l'article",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "slug": {
+                      "type": "string"
+                    },
+                    "content": {
+                      "type": "string"
+                    },
+                    "excerpt": {
+                      "type": "string"
+                    },
+                    "author": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "name": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "published_at": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "featured_image": {
+                      "type": "string",
+                      "format": "uri",
+                      "nullable": true
+                    },
+                    "categories": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "comments": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "author": {
+                            "type": "string"
+                          },
+                          "content": {
+                            "type": "string"
+                          },
+                          "created_at": {
+                            "type": "string",
+                            "format": "date-time"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Article non trouvé"
+          }
+        }
+      },
+      "put": {
+        "operationId": "blog_posts_update",
+        "description": "Mise à jour complète d'un article",
+        "tags": ["Blog"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  },
+                  "content": {
+                    "type": "string"
+                  },
+                  "excerpt": {
+                    "type": "string"
+                  },
+                  "featured_image": {
+                    "type": "string",
+                    "format": "uri",
+                    "nullable": true
+                  },
+                  "categories": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": ["draft", "published"]
+                  }
+                },
+                "required": ["title", "content"]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Article mis à jour avec succès"
+          },
+          "400": {
+            "description": "Données invalides"
+          },
+          "401": {
+            "description": "Authentification requise"
+          },
+          "403": {
+            "description": "Permission refusée"
+          },
+          "404": {
+            "description": "Article non trouvé"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "blog_posts_partial_update",
+        "description": "Mise à jour partielle d'un article",
+        "tags": ["Blog"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  },
+                  "content": {
+                    "type": "string"
+                  },
+                  "excerpt": {
+                    "type": "string"
+                  },
+                  "featured_image": {
+                    "type": "string",
+                    "format": "uri",
+                    "nullable": true
+                  },
+                  "categories": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": ["draft", "published"]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Article mis à jour avec succès"
+          },
+          "400": {
+            "description": "Données invalides"
+          },
+          "401": {
+            "description": "Authentification requise"
+          },
+          "403": {
+            "description": "Permission refusée"
+          },
+          "404": {
+            "description": "Article non trouvé"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "blog_posts_destroy",
+        "description": "Suppression d'un article",
+        "tags": ["Blog"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Article supprimé avec succès"
+          },
+          "401": {
+            "description": "Authentification requise"
+          },
+          "403": {
+            "description": "Permission refusée"
+          },
+          "404": {
+            "description": "Article non trouvé"
+          }
+        }
+      }
+    },
+    "/api/blog/categories/": {
+      "get": {
+        "operationId": "blog_categories_list",
+        "description": "Liste de toutes les catégories du blog",
+        "tags": ["Blog"],
+        "responses": {
+          "200": {
+            "description": "Liste des catégories",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "slug": {
+                        "type": "string"
+                      },
+                      "post_count": {
+                        "type": "integer"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "blog_categories_create",
+        "description": "Création d'une nouvelle catégorie",
+        "tags": ["Blog"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  }
+                },
+                "required": ["name"]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Catégorie créée avec succès"
+          },
+          "400": {
+            "description": "Données invalides"
+          },
+          "401": {
+            "description": "Authentification requise"
+          }
+        }
+      }
+    },
+    "/api/blog/posts/{slug}/comments/": {
+      "parameters": [
+        {
+          "name": "slug",
+          "in": "path",
+          "required": true,
+          "description": "Slug de l'article",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "post": {
+        "operationId": "blog_posts_comments_create",
+        "description": "Ajouter un commentaire à un article",
+        "tags": ["Blog"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "content": {
+                    "type": "string"
+                  }
+                },
+                "required": ["content"]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Commentaire ajouté avec succès"
+          },
+          "400": {
+            "description": "Données invalides"
+          },
+          "401": {
+            "description": "Authentification requise"
+          },
+          "404": {
+            "description": "Article non trouvé"
+          }
+        }
+      }
+    },
+    "/api/lodge/{id}/": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "Identifiant UUID de l'établissement",
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "lodge_retrieve",
+        "description": "Détails d'un établissement spécifique",
+        "tags": ["Lodge"],
+        "responses": {
+          "200": {
+            "description": "Détails de l'établissement",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Lodge"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Établissement non trouvé"
+          }
+        }
+      },
+      "put": {
+        "operationId": "lodge_update",
+        "description": "Mise à jour complète d'un établissement",
+        "tags": ["Lodge"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Lodge"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Établissement mis à jour avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Lodge"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Données invalides"
+          },
+          "401": {
+            "description": "Authentification requise"
+          },
+          "404": {
+            "description": "Établissement non trouvé"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "lodge_partial_update",
+        "description": "Mise à jour partielle d'un établissement",
+        "tags": ["Lodge"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Lodge"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Établissement mis à jour avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Lodge"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Données invalides"
+          },
+          "401": {
+            "description": "Authentification requise"
+          },
+          "404": {
+            "description": "Établissement non trouvé"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "lodge_destroy",
+        "description": "Suppression d'un établissement",
+        "tags": ["Lodge"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Établissement supprimé avec succès"
+          },
+          "401": {
+            "description": "Authentification requise"
+          },
+          "404": {
+            "description": "Établissement non trouvé"
+          }
+        }
+      }
+    },
+    "/api/auth/login/": {
+      "post": {
+        "operationId": "auth_login_create",
+        "description": "Authentification d'un utilisateur et génération d'un token JWT",
+        "tags": ["Authentication"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password"
+                  }
+                },
+                "required": ["email", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authentification réussie",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "access": {
+                      "type": "string",
+                      "description": "Token JWT d'accès"
+                    },
+                    "refresh": {
+                      "type": "string",
+                      "description": "Token JWT de rafraîchissement"
+                    },
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "email": {
+                          "type": "string",
+                          "format": "email"
+                        },
+                        "first_name": {
+                          "type": "string"
+                        },
+                        "last_name": {
+                          "type": "string"
+                        },
+                        "role": {
+                          "type": "string",
+                          "enum": ["admin", "staff", "guest"]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Données d'authentification invalides"
+          }
+        }
+      }
+    },
+    "/api/auth/token/refresh/": {
+      "post": {
+        "operationId": "auth_token_refresh",
+        "description": "Rafraîchissement du token JWT",
+        "tags": ["Authentication"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "refresh": {
+                    "type": "string",
+                    "description": "Token JWT de rafraîchissement"
+                  }
+                },
+                "required": ["refresh"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Token rafraîchit avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "access": {
+                      "type": "string",
+                      "description": "Nouveau token JWT d'accès"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token de rafraîchissement invalide ou expiré"
+          }
+        }
+      }
+    },
+    "/api/auth/token/verify/": {
+      "post": {
+        "operationId": "auth_token_verify",
+        "description": "Vérification de la validité d'un token JWT",
+        "tags": ["Authentication"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "token": {
+                    "type": "string",
+                    "description": "Token JWT à vérifier"
+                  }
+                },
+                "required": ["token"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Token valide"
+          },
+          "401": {
+            "description": "Token invalide ou expiré"
+          }
+        }
+      }
+    },
+    "/api/auth/logout/": {
+      "post": {
+        "operationId": "auth_logout",
+        "description": "Déconnexion de l'utilisateur",
+        "tags": ["Authentication"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "refresh": {
+                    "type": "string",
+                    "description": "Token JWT de rafraîchissement à invalider"
+                  }
+                },
+                "required": ["refresh"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Déconnexion réussie"
+          },
+          "400": {
+            "description": "Données invalides"
+          }
+        }
+      }
+    },
+    "/api/auth/user/": {
+      "get": {
+        "operationId": "auth_user_retrieve",
+        "description": "Récupération des informations de l'utilisateur connecté",
+        "tags": ["Authentication"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Informations de l'utilisateur",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "email": {
+                      "type": "string",
+                      "format": "email"
+                    },
+                    "first_name": {
+                      "type": "string"
+                    },
+                    "last_name": {
+                      "type": "string"
+                    },
+                    "role": {
+                      "type": "string",
+                      "enum": ["admin", "staff", "guest"]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentification requise"
+          }
+        }
+      },
+      "put": {
+        "operationId": "auth_user_update",
+        "description": "Mise à jour complète des informations de l'utilisateur connecté",
+        "tags": ["Authentication"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "first_name": {
+                    "type": "string"
+                  },
+                  "last_name": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Informations mises à jour avec succès"
+          },
+          "400": {
+            "description": "Données invalides"
+          },
+          "401": {
+            "description": "Authentification requise"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "auth_user_partial_update",
+        "description": "Mise à jour partielle des informations de l'utilisateur connecté",
+        "tags": ["Authentication"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "first_name": {
+                    "type": "string"
+                  },
+                  "last_name": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Informations mises à jour avec succès"
+          },
+          "400": {
+            "description": "Données invalides"
+          },
+          "401": {
+            "description": "Authentification requise"
+          }
+        }
+      }
+    },
+    "/api/auth/password/change/": {
+      "post": {
+        "operationId": "auth_password_change",
+        "description": "Changement de mot de passe pour l'utilisateur connecté",
+        "tags": ["Authentication"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "old_password": {
+                    "type": "string",
+                    "format": "password"
+                  },
+                  "new_password1": {
+                    "type": "string",
+                    "format": "password"
+                  },
+                  "new_password2": {
+                    "type": "string",
+                    "format": "password"
+                  }
+                },
+                "required": ["old_password", "new_password1", "new_password2"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Mot de passe changé avec succès"
+          },
+          "400": {
+            "description": "Données invalides"
+          },
+          "401": {
+            "description": "Authentification requise"
+          }
+        }
+      }
+    },
+    "/api/auth/password/reset/": {
+      "post": {
+        "operationId": "auth_password_reset",
+        "description": "Demande de réinitialisation de mot de passe",
+        "tags": ["Authentication"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  }
+                },
+                "required": ["email"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Email de réinitialisation envoyé"
+          },
+          "400": {
+            "description": "Email invalide ou non trouvé"
+          }
+        }
+      }
+    },
+    "/api/auth/password/reset/confirm/": {
+      "post": {
+        "operationId": "auth_password_reset_confirm",
+        "description": "Confirmation de la réinitialisation du mot de passe",
+        "tags": ["Authentication"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "uid": {
+                    "type": "string"
+                  },
+                  "token": {
+                    "type": "string"
+                  },
+                  "new_password1": {
+                    "type": "string",
+                    "format": "password"
+                  },
+                  "new_password2": {
+                    "type": "string",
+                    "format": "password"
+                  }
+                },
+                "required": ["uid", "token", "new_password1", "new_password2"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Mot de passe réinitialisé avec succès"
+          },
+          "400": {
+            "description": "Données invalides ou token expiré"
+          }
+        }
+      }
+    },
+    "/api/auth/register/": {
+      "post": {
+        "operationId": "auth_register_create",
+        "description": "Création d'un nouveau compte utilisateur",
+        "tags": ["Authentication"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "password1": {
+                    "type": "string",
+                    "format": "password"
+                  },
+                  "password2": {
+                    "type": "string",
+                    "format": "password"
+                  },
+                  "first_name": {
+                    "type": "string"
+                  },
+                  "last_name": {
+                    "type": "string"
+                  }
+                },
+                "required": ["email", "password1", "password2"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Compte créé avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "email": {
+                          "type": "string",
+                          "format": "email"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Données d'inscription invalides"
+          }
+        }
+      }
+    },
+    "/api/reservations/": {
+      "get": {
+        "operationId": "reservations_list",
+        "description": "Liste des réservations de l'utilisateur authentifié",
+        "tags": ["Reservations"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Filtrer par statut de réservation",
+            "schema": {
+              "type": "string",
+              "enum": ["pending", "confirmed", "cancelled", "completed"]
+            }
+          },
+          {
+            "name": "start_date",
+            "in": "query",
+            "description": "Date de début (format YYYY-MM-DD)",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "end_date",
+            "in": "query",
+            "description": "Date de fin (format YYYY-MM-DD)",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des réservations",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "integer"
+                    },
+                    "next": {
+                      "type": "string",
+                      "format": "uri",
+                      "nullable": true
+                    },
+                    "previous": {
+                      "type": "string",
+                      "format": "uri",
+                      "nullable": true
+                    },
+                    "results": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": ["pending", "confirmed", "cancelled", "completed"]
+                          },
+                          "start_date": {
+                            "type": "string",
+                            "format": "date"
+                          },
+                          "end_date": {
+                            "type": "string",
+                            "format": "date"
+                          },
+                          "total_price": {
+                            "type": "number",
+                            "format": "float"
+                          },
+                          "created_at": {
+                            "type": "string",
+                            "format": "date-time"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentification requise"
+          }
+        }
+      },
+      "post": {
+        "operationId": "reservations_create",
+        "description": "Création d'une nouvelle réservation",
+        "tags": ["Reservations"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "start_date": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "end_date": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "accommodations": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "quantity": {
+                          "type": "integer",
+                          "minimum": 1
+                        }
+                      },
+                      "required": ["id", "quantity"]
+                    }
+                  },
+                  "activities": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "date": {
+                          "type": "string",
+                          "format": "date"
+                        },
+                        "participants": {
+                          "type": "integer",
+                          "minimum": 1
+                        }
+                      },
+                      "required": ["id", "date", "participants"]
+                    }
+                  },
+                  "transports": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "date": {
+                          "type": "string",
+                          "format": "date"
+                        },
+                        "passengers": {
+                          "type": "integer",
+                          "minimum": 1
+                        }
+                      },
+                      "required": ["id", "date", "passengers"]
+                    }
+                  }
+                },
+                "required": ["start_date", "end_date"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Réservation créée avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": ["pending", "confirmed", "cancelled", "completed"]
+                    },
+                    "total_price": {
+                      "type": "number",
+                      "format": "float"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Données de réservation invalides"
+          },
+          "401": {
+            "description": "Authentification requise"
+          }
+        }
+      }
+    },
+    "/api/reservations/{id}/": {
+      "get": {
+        "operationId": "reservations_retrieve",
+        "description": "Détails d'une réservation spécifique",
+        "tags": ["Reservations"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Identifiant UUID de la réservation",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Détails de la réservation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": ["pending", "confirmed", "cancelled", "completed"]
+                    },
+                    "start_date": {
+                      "type": "string",
+                      "format": "date"
+                    },
+                    "end_date": {
+                      "type": "string",
+                      "format": "date"
+                    },
+                    "total_price": {
+                      "type": "number",
+                      "format": "float"
+                    },
+                    "created_at": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "accommodations": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "price": {
+                            "type": "number",
+                            "format": "float"
+                          },
+                          "quantity": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    },
+                    "activities": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "price": {
+                            "type": "number",
+                            "format": "float"
+                          },
+                          "date": {
+                            "type": "string",
+                            "format": "date"
+                          },
+                          "participants": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    },
+                    "transports": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "price": {
+                            "type": "number",
+                            "format": "float"
+                          },
+                          "date": {
+                            "type": "string",
+                            "format": "date"
+                          },
+                          "passengers": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Réservation non trouvée"
+          }
+        }
+      },
+      "put": {
+        "operationId": "reservations_update",
+        "description": "Mise à jour complète d'une réservation",
+        "tags": ["Reservations"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Identifiant UUID de la réservation",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "start_date": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "end_date": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": ["pending", "confirmed", "cancelled", "completed"]
+                  }
+                },
+                "required": ["start_date", "end_date"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Réservation mise à jour avec succès"
+          },
+          "400": {
+            "description": "Données de mise à jour invalides"
+          },
+          "404": {
+            "description": "Réservation non trouvée"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "reservations_partial_update",
+        "description": "Mise à jour partielle d'une réservation",
+        "tags": ["Reservations"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Identifiant UUID de la réservation",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": ["pending", "confirmed", "cancelled", "completed"]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Réservation mise à jour avec succès"
+          },
+          "400": {
+            "description": "Données de mise à jour invalides"
+          },
+          "404": {
+            "description": "Réservation non trouvée"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "reservations_destroy",
+        "description": "Suppression d'une réservation",
+        "tags": ["Reservations"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Identifiant UUID de la réservation",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Réservation supprimée avec succès"
+          },
+          "404": {
+            "description": "Réservation non trouvée"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Region": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "description": {
+            "type": "string"
+          },
+          "image": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true
+          }
+        },
+        "required": ["name", "description"]
+      },
+      "TouristPlace": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "description": {
+            "type": "string"
+          },
+          "region": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "place_type": {
+            "type": "string",
+            "enum": ["natural", "historical", "cultural", "adventure"]
+          },
+          "rating": {
+            "type": "number",
+            "format": "float",
+            "minimum": 0,
+            "maximum": 5
+          },
+          "entrance_fee": {
+            "type": "number",
+            "format": "float",
+            "minimum": 0
+          },
+          "image": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true
+          }
+        },
+        "required": ["name", "description", "region", "place_type"]
+      },
+      "Accommodation": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "description": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["hotel", "apartment", "villa", "resort", "guesthouse"]
+          },
+          "price": {
+            "type": "number",
+            "format": "float",
+            "minimum": 0
+          },
+          "capacity": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "image": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true
+          }
+        },
+        "required": ["name", "description", "type", "price", "capacity"]
+      },
+      "Activity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "description": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["adventure", "cultural", "relaxation", "sightseeing"]
+          },
+          "price": {
+            "type": "number",
+            "format": "float",
+            "minimum": 0
+          },
+          "duration": {
+            "type": "integer",
+            "description": "Durée en minutes",
+            "minimum": 1
+          },
+          "image": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true
+          }
+        },
+        "required": ["name", "description", "type", "price", "duration"]
+      },
+      "Transport": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "description": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["car", "bus", "boat", "bicycle"]
+          },
+          "price": {
+            "type": "number",
+            "format": "float",
+            "minimum": 0
+          },
+          "capacity": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "image": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true
+          }
+        },
+        "required": ["name", "description", "type", "price", "capacity"]
+      },
+      "Reservation": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "user": {
+            "type": "string",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "confirmed", "cancelled", "completed"]
+          },
+          "start_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "end_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "total_price": {
+            "type": "number",
+            "format": "float",
+            "readOnly": true
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true
+          }
+        },
+        "required": ["start_date", "end_date"]
+      },
+      "Lodge": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "is_active": {
+            "type": "boolean",
+            "default": true
+          },
+          "type": {
+            "type": "string",
+            "enum": ["hotel", "resort", "villa", "apartment", "guesthouse"]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true
+          }
+        },
+        "required": ["name", "email", "phone", "address", "description", "type"]
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}

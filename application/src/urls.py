@@ -2,9 +2,12 @@ from django.urls import include, re_path, path
 from django.contrib import admin
 
 from django.views.generic import RedirectView, TemplateView
-from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
+from drf_spectacular.views import SpectacularSwaggerView, SpectacularRedocView
 
-schema_view = SpectacularAPIView.as_view()
+# Utilisation de notre vue personnalisée au lieu de SpectacularAPIView
+from src.schema import SafeSpectacularAPIView
+
+schema_view = SafeSpectacularAPIView.as_view()
 
 from src.admin_dashboard import admin_dashboard
 

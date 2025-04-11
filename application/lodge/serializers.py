@@ -2,6 +2,7 @@ from rest_framework import serializers
 from .models import Lodge, LodgeAccommodation, LodgeActivity
 from accommodations.serializers import AccommodationSerializer
 from activities.serializers import ActivitySerializer
+from drf_spectacular.utils import extend_schema_field
 
 class LodgeAccommodationSerializer(serializers.ModelSerializer):
     accommodation_details = AccommodationSerializer(source='accommodation', read_only=True)
@@ -36,8 +37,9 @@ class LodgeActivitySerializer(serializers.ModelSerializer):
         return value
 
 class LodgeSerializer(serializers.ModelSerializer):
-    accommodations = LodgeAccommodationSerializer(source='lodgeaccommodation_set', many=True, read_only=True)
-    activities = LodgeActivitySerializer(source='lodgeactivity_set', many=True, read_only=True)
+    # Utilisation de related_name au lieu de _set pour éviter les problèmes avec drf-spectacular
+    accommodations = serializers.SerializerMethodField()
+    activities = serializers.SerializerMethodField()
     total_accommodations = serializers.SerializerMethodField()
     total_activities = serializers.SerializerMethodField()
 
@@ -46,9 +48,21 @@ class LodgeSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'email', 'phone', 'address', 'description',
                  'is_active', 'type', 'created_at', 'accommodations', 'activities',
                  'total_accommodations', 'total_activities']
+        # Ajouter ref_name pour éviter les conflits de noms
+        ref_name = 'LodgeDetail'
 
+    @extend_schema_field(LodgeAccommodationSerializer(many=True))
+    def get_accommodations(self, obj):
+        return LodgeAccommodationSerializer(obj.lodge_accommodations.all(), many=True).data
+        
+    @extend_schema_field(LodgeActivitySerializer(many=True))
+    def get_activities(self, obj):
+        return LodgeActivitySerializer(obj.lodge_activities.all(), many=True).data
+
+    @extend_schema_field(serializers.IntegerField())
     def get_total_accommodations(self, obj):
-        return obj.lodgeaccommodation_set.count()
+        return obj.lodge_accommodations.count()
 
+    @extend_schema_field(serializers.IntegerField())
     def get_total_activities(self, obj):
-        return obj.lodgeactivity_set.count()
+        return obj.lodge_activities.count()

@@ -5,6 +5,8 @@ class RegionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Region
         fields = '__all__'
+        # Résoudre le conflit de noms avec regions.serializers.RegionSerializer
+        ref_name = 'TouristPlaceRegion'
 
 class PlaceReviewSerializer(serializers.ModelSerializer):
     user = serializers.ReadOnlyField(source='user.username')

@@ -14,6 +14,8 @@ from django.utils import timezone
 from rest_framework import serializers
 from .models import CustomUser
 from dj_rest_auth.registration.serializers import RegisterSerializer
+# Import pour la documentation API
+from drf_spectacular.utils import extend_schema_field
 
 class CustomUserSerializer(serializers.ModelSerializer):
     """
@@ -45,6 +47,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
             'email': {'required': True}
         }
 
+    @extend_schema_field(serializers.CharField())
     def get_role(self, obj):
         """
         Détermine le rôle de l'utilisateur basé sur ses attributs

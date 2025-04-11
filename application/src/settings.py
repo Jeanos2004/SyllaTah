@@ -38,7 +38,7 @@ X_FRAME_OPTIONS = 'DENY'
 SESSION_COOKIE_HTTPONLY = True
 
 ALLOWED_HOSTS = [
-    'dfef-197-149-243-78.ngrok-free.app',
+    '10d4-169-155-235-47.ngrok-free.app',
     '127.0.0.1',
     'localhost'
 ]
@@ -317,6 +317,20 @@ CORS_ALLOWED_ORIGINS = [
 CORS_ALLOW_CREDENTIALS = True  # Permet d'envoyer des cookies avec les requêtes cross-origin
 
 CORS_ALLOW_ALL_ORIGINS = True
+
+# Configuration de DRF Spectacular pour la documentation API
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'SyllaTah API',
+    'DESCRIPTION': 'API pour la gestion des réservations, hébergements, transports et activités',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    # Désactiver la validation du schéma pour éviter les erreurs
+    'SCHEMA_PATH_PREFIX': r'/api/',
+    'COMPONENT_SPLIT_REQUEST': True,
+    'COMPONENT_NO_READ_ONLY_REQUIRED': False,
+    # Ignorer les erreurs pour permettre la génération du schéma même avec des problèmes
+    'DISABLE_ERRORS_AND_WARNINGS': True,
+}
 
 # Configuration des fournisseurs d'authentification sociale
 SOCIALACCOUNT_PROVIDERS = {
