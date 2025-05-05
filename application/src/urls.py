@@ -3,6 +3,7 @@ from django.contrib import admin
 
 from django.views.generic import RedirectView, TemplateView
 from drf_spectacular.views import SpectacularSwaggerView, SpectacularRedocView
+from rest_framework import permissions
 
 # Utilisation de notre vue personnalisée au lieu de SpectacularAPIView
 from src.schema import SafeSpectacularAPIView
@@ -41,10 +42,10 @@ urlpatterns = [
     # Redirection du profil utilisateur
     re_path(r'^accounts/profile/$', RedirectView.as_view(url='/', permanent=True), name='profile-redirect'),
 
-    # Documentation de l'API (drf-spectacular)
+    # Documentation de l'API (drf-spectacular) - Sécurisée
     re_path(r'^api/schema/$', schema_view, name='schema'),
-    re_path(r'^api/docs/$', SpectacularSwaggerView.as_view(url_name='schema'), name='api_docs'),
-    re_path(r'^api/redoc/$', SpectacularRedocView.as_view(url_name='schema'), name='schema-redoc'),
+    re_path(r'^api/docs/$', SpectacularSwaggerView.as_view(url_name='schema', permission_classes=[permissions.IsAuthenticated]), name='api_docs'),
+    re_path(r'^api/redoc/$', SpectacularRedocView.as_view(url_name='schema', permission_classes=[permissions.IsAuthenticated]), name='schema-redoc'),
 
     # URLs des applications
     re_path(r'^api/regions/', include('regions.urls')),

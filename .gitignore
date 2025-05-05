@@ -107,8 +107,8 @@ venv.bak/
 
 # mypy
 .mypy_cache/
-demo/react-spa/node_modules/
-demo/react-spa/yarn.lock
+application/react-spa/node_modules/
+application/react-spa/yarn.lock
 
 # Visual Studio Code
 .vscode/

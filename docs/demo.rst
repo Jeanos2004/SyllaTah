@@ -9,14 +9,14 @@ To run this locally follow the steps below.
 
     cd /tmp
     git clone https://github.com/iMerica/dj-rest-auth.git
-    cd dj-rest-auth/demo/
+    cd dj-rest-auth/application/
     pip install -r requirements.txt
     python manage.py migrate --settings=demo.settings --noinput
     python manage.py runserver --settings=demo.settings
 
 
 Now, go to ``http://127.0.0.1:8000/`` in your browser. There is also a
-Single Page Application (SPA) in React within the ``demo/`` directory. To run this do:
+Single Page Application (SPA) in React within the ``application/`` directory. To run this do:
 
 .. code-block:: python
 

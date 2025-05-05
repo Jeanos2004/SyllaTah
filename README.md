@@ -1,4 +1,4 @@
-# Project Agrisense 
+# Project SylliTaa 
 [![<iMerica>](https://github.com/iMerica/dj-rest-auth/actions/workflows/main.yml/badge.svg)](https://github.com/iMerica/dj-rest-auth/actions/workflows/main.yml/)
 
 

@@ -276,7 +276,7 @@ REST_FRAMEWORK = {
     },
     'EXCEPTION_HANDLER': 'src.error_handling.custom_exception_handler',
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',  # Permettre l'accès à tous pendant la phase de test
+        'src.permissions.AllowPublicEndpoints',  # Utiliser notre classe de permission personnalisée
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.SessionAuthentication',

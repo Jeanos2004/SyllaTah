@@ -47,3 +47,46 @@ class IsAuthenticatedWithToken(permissions.BasePermission):
             'Authorization' in request.headers or 
             request.auth is not None
         )
+
+class AllowPublicEndpoints(permissions.BasePermission):
+    """
+    Permission pour permettre l'accès aux endpoints publics sans authentification,
+    tout en exigeant l'authentification pour les autres endpoints.
+    """
+    
+    # Liste des endpoints qui doivent être accessibles publiquement
+    PUBLIC_ENDPOINTS = [
+        'login',
+        'register',
+        'password_reset',
+        'password_reset_confirm',
+        'token_verify',
+        'token_refresh',
+    ]
+    
+    # Liste des chemins d'URL qui doivent être accessibles publiquement
+    PUBLIC_PATHS = [
+        '/auth/login/',
+        '/auth/registration/',
+        '/auth/password/reset/',
+        '/auth/token/verify/',
+        '/auth/token/refresh/',
+    ]
+    
+    def has_permission(self, request, view):
+        # Autoriser les requêtes GET pour certains endpoints spécifiques (comme les régions, lieux touristiques)
+        if request.method == 'GET' and hasattr(view, 'basename') and view.basename in [
+            'region', 'tourist-place', 'accommodation', 'activity', 'transport'
+        ]:
+            return True
+            
+        # Autoriser les endpoints publics spécifiques
+        if hasattr(view, 'basename') and view.basename in self.PUBLIC_ENDPOINTS:
+            return True
+            
+        # Autoriser les chemins d'URL publics spécifiques
+        if request.path in self.PUBLIC_PATHS:
+            return True
+            
+        # Pour tous les autres endpoints, exiger l'authentification
+        return request.user and request.user.is_authenticated

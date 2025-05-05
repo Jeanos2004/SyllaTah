@@ -3,6 +3,7 @@ from drf_spectacular.views import SpectacularAPIView
 import logging
 import traceback
 from rest_framework.views import APIView
+from rest_framework import permissions
 from django.http import JsonResponse
 import json
 import os
@@ -82,11 +83,20 @@ class SafeSpectacularAPIView(SpectacularAPIView):
     Vue API personnalisée qui utilise notre générateur de schéma sécurisé.
     """
     generator_class = SafeSchemaGenerator
+    permission_classes = [permissions.IsAuthenticated]
     
     def get(self, request, *args, **kwargs):
         """
         Surcharge de la méthode GET pour utiliser directement le schéma statique.
+        Vérifie également que l'utilisateur est authentifié.
         """
+        # Vérifier que l'utilisateur est authentifié
+        if not request.user.is_authenticated:
+            return JsonResponse(
+                {"detail": "Authentification requise pour accéder à la documentation API."}, 
+                status=401
+            )
+        
         # Utiliser directement le schéma statique au lieu d'essayer de générer un schéma dynamique
         static_schema_path = os.path.join(os.path.dirname(__file__), 'static_schema.json')
         
