@@ -3,6 +3,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from django.db.models import Q
+
+from src.pagination import CustomPagination
 from .models import TouristPlace, PlaceReview
 from .serializers import TouristPlaceSerializer, RegionSerializer, PlaceReviewSerializer
 
@@ -10,6 +12,7 @@ class TouristPlaceViewSet(viewsets.ModelViewSet):
     queryset = TouristPlace.objects.all()
     serializer_class = TouristPlaceSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
+    pagination_class = CustomPagination
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['name', 'description', 'region__name', 'place_type']
     ordering_fields = ['rating', 'created_at', 'entrance_fee']

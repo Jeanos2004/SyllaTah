@@ -1355,37 +1355,74 @@
     "/api/blog/posts/": {
       "get": {
         "operationId": "blog_posts_list",
-        "description": "Liste de tous les articles du blog",
+        "description": "Liste de tous les articles du blog publiés",
         "tags": ["Blog"],
         "parameters": [
           {
-            "name": "category",
+            "name": "page",
             "in": "query",
-            "description": "Filtrer par catégorie",
+            "description": "Numéro de page",
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "default": 1
             }
           },
           {
-            "name": "author",
+            "name": "page_size",
             "in": "query",
-            "description": "Filtrer par auteur",
+            "description": "Nombre d'articles par page",
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "description": "Filtrer par catégorie (ID UUID)",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "tag",
+            "in": "query",
+            "description": "Filtrer par tag (ID UUID)",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "featured",
+            "in": "query",
+            "description": "Filtrer par articles mis en avant",
+            "schema": {
+              "type": "boolean"
             }
           },
           {
             "name": "search",
             "in": "query",
-            "description": "Recherche dans le titre et le contenu",
+            "description": "Recherche dans le titre, contenu, catégorie ou tags",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "ordering",
+            "in": "query",
+            "description": "Tri par date de création, nombre de vues ou titre",
+            "schema": {
+              "type": "string",
+              "enum": ["created_at", "-created_at", "views_count", "-views_count", "title", "-title"]
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Liste des articles",
+            "description": "Liste paginée des articles",
             "content": {
               "application/json": {
                 "schema": {
@@ -1419,7 +1456,7 @@
                           "slug": {
                             "type": "string"
                           },
-                          "excerpt": {
+                          "content": {
                             "type": "string"
                           },
                           "author": {
@@ -1429,25 +1466,59 @@
                                 "type": "string",
                                 "format": "uuid"
                               },
-                              "name": {
+                              "username": {
                                 "type": "string"
                               }
                             }
                           },
-                          "published_at": {
-                            "type": "string",
-                            "format": "date-time"
+                          "category": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "slug": {
+                                "type": "string"
+                              }
+                            },
+                            "nullable": true
                           },
-                          "featured_image": {
+                          "tags": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "format": "uuid"
+                                },
+                                "name": {
+                                  "type": "string"
+                                },
+                                "slug": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          },
+                          "image": {
                             "type": "string",
                             "format": "uri",
                             "nullable": true
                           },
-                          "categories": {
-                            "type": "array",
-                            "items": {
-                              "type": "string"
-                            }
+                          "created_at": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "views_count": {
+                            "type": "integer"
+                          },
+                          "featured": {
+                            "type": "boolean"
                           }
                         }
                       }
@@ -1480,23 +1551,29 @@
                   "content": {
                     "type": "string"
                   },
-                  "excerpt": {
-                    "type": "string"
-                  },
-                  "featured_image": {
+                  "category": {
                     "type": "string",
-                    "format": "uri",
+                    "format": "uuid",
                     "nullable": true
                   },
-                  "categories": {
+                  "tags": {
                     "type": "array",
                     "items": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     }
+                  },
+                  "image": {
+                    "type": "string",
+                    "format": "binary",
+                    "nullable": true
                   },
                   "status": {
                     "type": "string",
                     "enum": ["draft", "published"]
+                  },
+                  "featured": {
+                    "type": "boolean"
                   }
                 },
                 "required": ["title", "content"]
@@ -1518,21 +1595,22 @@
         }
       }
     },
-    "/api/blog/posts/{slug}/": {
+    "/api/blog/posts/{pk}/": {
       "parameters": [
         {
-          "name": "slug",
+          "name": "pk",
           "in": "path",
           "required": true,
-          "description": "Slug de l'article",
+          "description": "Identifiant UUID de l'article",
           "schema": {
-            "type": "string"
+            "type": "string",
+            "format": "uuid"
           }
         }
       ],
       "get": {
         "operationId": "blog_posts_retrieve",
-        "description": "Détails d'un article spécifique",
+        "description": "Détails d'un article spécifique (incrémente le compteur de vues)",
         "tags": ["Blog"],
         "responses": {
           "200": {
@@ -1555,10 +1633,19 @@
                     "content": {
                       "type": "string"
                     },
-                    "excerpt": {
-                      "type": "string"
-                    },
                     "author": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "username": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "category": {
                       "type": "object",
                       "properties": {
                         "id": {
@@ -1567,25 +1654,14 @@
                         },
                         "name": {
                           "type": "string"
+                        },
+                        "slug": {
+                          "type": "string"
                         }
-                      }
-                    },
-                    "published_at": {
-                      "type": "string",
-                      "format": "date-time"
-                    },
-                    "featured_image": {
-                      "type": "string",
-                      "format": "uri",
+                      },
                       "nullable": true
                     },
-                    "categories": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    },
-                    "comments": {
+                    "tags": {
                       "type": "array",
                       "items": {
                         "type": "object",
@@ -1594,18 +1670,37 @@
                             "type": "string",
                             "format": "uuid"
                           },
-                          "author": {
+                          "name": {
                             "type": "string"
                           },
-                          "content": {
+                          "slug": {
                             "type": "string"
-                          },
-                          "created_at": {
-                            "type": "string",
-                            "format": "date-time"
                           }
                         }
                       }
+                    },
+                    "image": {
+                      "type": "string",
+                      "format": "uri",
+                      "nullable": true
+                    },
+                    "created_at": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "updated_at": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": ["draft", "published"]
+                    },
+                    "views_count": {
+                      "type": "integer"
+                    },
+                    "featured": {
+                      "type": "boolean"
                     }
                   }
                 }
@@ -1638,23 +1733,29 @@
                   "content": {
                     "type": "string"
                   },
-                  "excerpt": {
-                    "type": "string"
-                  },
-                  "featured_image": {
+                  "category": {
                     "type": "string",
-                    "format": "uri",
+                    "format": "uuid",
                     "nullable": true
                   },
-                  "categories": {
+                  "tags": {
                     "type": "array",
                     "items": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     }
+                  },
+                  "image": {
+                    "type": "string",
+                    "format": "binary",
+                    "nullable": true
                   },
                   "status": {
                     "type": "string",
                     "enum": ["draft", "published"]
+                  },
+                  "featured": {
+                    "type": "boolean"
                   }
                 },
                 "required": ["title", "content"]
@@ -1702,23 +1803,29 @@
                   "content": {
                     "type": "string"
                   },
-                  "excerpt": {
-                    "type": "string"
-                  },
-                  "featured_image": {
+                  "category": {
                     "type": "string",
-                    "format": "uri",
+                    "format": "uuid",
                     "nullable": true
                   },
-                  "categories": {
+                  "tags": {
                     "type": "array",
                     "items": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     }
+                  },
+                  "image": {
+                    "type": "string",
+                    "format": "binary",
+                    "nullable": true
                   },
                   "status": {
                     "type": "string",
                     "enum": ["draft", "published"]
+                  },
+                  "featured": {
+                    "type": "boolean"
                   }
                 }
               }
@@ -1768,6 +1875,53 @@
         }
       }
     },
+    "/api/blog/posts/{pk}/toggle_featured/": {
+      "parameters": [
+        {
+          "name": "pk",
+          "in": "path",
+          "required": true,
+          "description": "Identifiant UUID de l'article",
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "post": {
+        "operationId": "blog_posts_toggle_featured",
+        "description": "Activer/désactiver la mise en avant d'un article",
+        "tags": ["Blog"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Statut de mise en avant modifié",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentification requise"
+          },
+          "404": {
+            "description": "Article non trouvé"
+          }
+        }
+      }
+    },
     "/api/blog/categories/": {
       "get": {
         "operationId": "blog_categories_list",
@@ -1793,8 +1947,8 @@
                       "slug": {
                         "type": "string"
                       },
-                      "post_count": {
-                        "type": "integer"
+                      "description": {
+                        "type": "string"
                       }
                     }
                   }
@@ -1845,21 +1999,114 @@
         }
       }
     },
-    "/api/blog/posts/{slug}/comments/": {
+    "/api/blog/categories/{slug}/posts/": {
       "parameters": [
         {
           "name": "slug",
           "in": "path",
           "required": true,
-          "description": "Slug de l'article",
+          "description": "Slug de la catégorie",
           "schema": {
             "type": "string"
           }
         }
       ],
+      "get": {
+        "operationId": "blog_categories_posts",
+        "description": "Liste des articles d'une catégorie spécifique",
+        "tags": ["Blog"],
+        "responses": {
+          "200": {
+            "description": "Liste des articles de la catégorie",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BlogPost"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Catégorie non trouvée"
+          }
+        }
+      }
+    },
+    "/api/blog/tags/{slug}/posts/": {
+      "parameters": [
+        {
+          "name": "slug",
+          "in": "path",
+          "required": true,
+          "description": "Slug du tag",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "blog_tags_posts",
+        "description": "Liste des articles avec un tag spécifique",
+        "tags": ["Blog"],
+        "responses": {
+          "200": {
+            "description": "Liste des articles avec le tag",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BlogPost"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tag non trouvé"
+          }
+        }
+      }
+    },
+    "/api/blog/tags/": {
+      "get": {
+        "operationId": "blog_tags_list",
+        "description": "Liste de tous les tags du blog",
+        "tags": ["Blog"],
+        "responses": {
+          "200": {
+            "description": "Liste des tags",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "slug": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
       "post": {
-        "operationId": "blog_posts_comments_create",
-        "description": "Ajouter un commentaire à un article",
+        "operationId": "blog_tags_create",
+        "description": "Création d'un nouveau tag",
         "tags": ["Blog"],
         "security": [
           {
@@ -1872,11 +2119,11 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "content": {
+                  "name": {
                     "type": "string"
                   }
                 },
-                "required": ["content"]
+                "required": ["name"]
               }
             }
           },
@@ -1884,16 +2131,13 @@
         },
         "responses": {
           "201": {
-            "description": "Commentaire ajouté avec succès"
+            "description": "Tag créé avec succès"
           },
           "400": {
             "description": "Données invalides"
           },
           "401": {
             "description": "Authentification requise"
-          },
-          "404": {
-            "description": "Article non trouvé"
           }
         }
       }
@@ -2034,7 +2278,7 @@
         }
       }
     },
-    "/api/auth/login/": {
+    "/auth/login/": {
       "post": {
         "operationId": "auth_login_create",
         "description": "Authentification d'un utilisateur et génération d'un token JWT",
@@ -2109,7 +2353,7 @@
         }
       }
     },
-    "/api/auth/token/refresh/": {
+    "/auth/token/refresh/": {
       "post": {
         "operationId": "auth_token_refresh",
         "description": "Rafraîchissement du token JWT",
@@ -2153,7 +2397,7 @@
         }
       }
     },
-    "/api/auth/token/verify/": {
+    "/auth/token/verify/": {
       "post": {
         "operationId": "auth_token_verify",
         "description": "Vérification de la validité d'un token JWT",
@@ -2184,7 +2428,7 @@
         }
       }
     },
-    "/api/auth/logout/": {
+    "/auth/logout/": {
       "post": {
         "operationId": "auth_logout",
         "description": "Déconnexion de l'utilisateur",
@@ -2220,7 +2464,7 @@
         }
       }
     },
-    "/api/auth/user/": {
+    "/auth/user/": {
       "get": {
         "operationId": "auth_user_retrieve",
         "description": "Récupération des informations de l'utilisateur connecté",
@@ -2351,7 +2595,7 @@
         }
       }
     },
-    "/api/auth/password/change/": {
+    "/auth/password/change/": {
       "post": {
         "operationId": "auth_password_change",
         "description": "Changement de mot de passe pour l'utilisateur connecté",
@@ -2398,7 +2642,7 @@
         }
       }
     },
-    "/api/auth/password/reset/": {
+    "/auth/password/reset/": {
       "post": {
         "operationId": "auth_password_reset",
         "description": "Demande de réinitialisation de mot de passe",
@@ -2429,7 +2673,7 @@
         }
       }
     },
-    "/api/auth/password/reset/confirm/": {
+    "/auth/password/reset/confirm/": {
       "post": {
         "operationId": "auth_password_reset_confirm",
         "description": "Confirmation de la réinitialisation du mot de passe",
@@ -2470,7 +2714,7 @@
         }
       }
     },
-    "/api/auth/register/": {
+    "/auth/register/": {
       "post": {
         "operationId": "auth_register_create",
         "description": "Création d'un nouveau compte utilisateur",
@@ -3038,6 +3282,93 @@
   },
   "components": {
     "schemas": {
+      "BlogPost": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "author": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "username": {
+                "type": "string"
+              }
+            }
+          },
+          "category": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "name": {
+                "type": "string"
+              },
+              "slug": {
+                "type": "string"
+              }
+            },
+            "nullable": true
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "slug": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "image": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["draft", "published"]
+          },
+          "views_count": {
+            "type": "integer"
+          },
+          "featured": {
+            "type": "boolean"
+          }
+        }
+      },
       "Region": {
         "type": "object",
         "properties": {

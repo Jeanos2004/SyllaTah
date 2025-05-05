@@ -111,7 +111,7 @@ class SafeSpectacularAPIView(SpectacularAPIView):
             schema = {
                 "openapi": "3.0.3",
                 "info": {
-                    "title": "SyllaTah API",
+                    "title": "SylliTaa API",
                     "version": "1.0.0",
                     "description": "API pour la gestion des réservations, hébergements, transports et activités"
                 },

@@ -2,6 +2,8 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 import logging
+
+from src.pagination import LargeResultSetPagination
 from .models import Reservation
 from .serializers import (
     ReservationSerializer, ReservationListSerializer, 
@@ -24,6 +26,7 @@ class ReservationViewSet(APILoggingMixin, OptimizedQuerySetMixin, SerializerByAc
     permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
     queryset = Reservation.objects.all()
     serializer_class = ReservationSerializer
+    pagination_class = LargeResultSetPagination
     
     # Optimisation des requêtes avec select_related
     select_related_fields = ['user', 'accommodation', 'transport', 'activity']

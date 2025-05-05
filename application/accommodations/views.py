@@ -1,8 +1,10 @@
 from django.shortcuts import render
 from rest_framework import viewsets, permissions
 
+from src.pagination import LargeResultSetPagination
+
 from .filters import AccommodationFilter
-from .pagination import LargeResultsSetPagination
+
 from .models import Accommodation, CategoryAccommodation, RoomType
 from .serializers import AccommodationSerializer, CategoryAccommodationSerializer, RoomTypeSerializer
 from .permissions import IsAdminOrReadOnly
@@ -19,7 +21,7 @@ class AccommodationViewSet(CachedViewSetMixin, viewsets.ModelViewSet):
     queryset = Accommodation.objects.all()  # Queryset par défaut
     filter_backends = [filters.DjangoFilterBackend]
     filterset_class = AccommodationFilter
-    pagination_class = LargeResultsSetPagination
+    pagination_class = LargeResultSetPagination
     permission_classes = [permissions.AllowAny]
     cache_timeout = 60 * 15  # 15 minutes de cache
 
@@ -49,7 +51,7 @@ class RoomTypeViewSets(CachedViewSetMixin, viewsets.ModelViewSet):
     serializer_class = RoomTypeSerializer
     filter_backends = [filters.DjangoFilterBackend]
     permission_classes = [permissions.AllowAny]
-    pagination_class = LargeResultsSetPagination
+    pagination_class = LargeResultSetPagination
     cache_timeout = 60 * 60  # 1 heure de cache
 
 

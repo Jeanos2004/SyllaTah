@@ -3,6 +3,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from django.db.models import Avg
+
+from src.pagination import CustomPagination
 from .models import Transport, TransportCategory, TransportReview
 from .serializers import TransportSerializer, TransportCategorySerializer, TransportReviewSerializer
 
@@ -10,6 +12,7 @@ class TransportViewSet(viewsets.ModelViewSet):
     queryset = Transport.objects.all()
     serializer_class = TransportSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
+    pagination_class = CustomPagination
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['company_name', 'transport_type', 'vehicle_type', 'description']
     ordering_fields = ['price', 'rating', 'created_at']
@@ -41,6 +44,7 @@ class TransportViewSet(viewsets.ModelViewSet):
 class TransportCategoryViewSet(viewsets.ModelViewSet):
     queryset = TransportCategory.objects.all()
     serializer_class = TransportCategorySerializer
+    pagination_class = CustomPagination
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     @action(detail=True)

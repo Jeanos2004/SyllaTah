@@ -3,6 +3,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from django.db.models import Avg
+
+from src.pagination import CustomPagination
 from .models import Activity, ActivityCategory, ActivityReview
 from .serializers import ActivitySerializer, ActivityCategorySerializer, ActivityReviewSerializer
 
@@ -10,6 +12,7 @@ class ActivityViewSet(viewsets.ModelViewSet):
     queryset = Activity.objects.all()
     serializer_class = ActivitySerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
+    pagination_class = CustomPagination
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['name', 'description', 'location', 'difficulty']
     ordering_fields = ['price', 'rating', 'created_at', 'duration']

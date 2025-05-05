@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from .views import TouristPlaceViewSet
 
 router = DefaultRouter()
-router.register(r'tourist-places', TouristPlaceViewSet)
+router.register(r'', TouristPlaceViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
